@@ -1,0 +1,24 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+numpy = "*"
+torch = "==1.2.0"
+torchvision = "*"
+ninja = "*"
+yacs = "*"
+matplotlib = "*"
+tqdm = "*"
+h5py = "*"
+easydict = "*"
+dill = "*"
+opencv-python = "*"
+Cython = "*"
+pycocotools = "*"
+
+[requires]
+python_version = "3.6"
