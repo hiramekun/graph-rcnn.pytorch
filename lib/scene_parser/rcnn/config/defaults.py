@@ -3,7 +3,6 @@ import os
 
 from yacs.config import CfgNode as CN
 
-
 # -----------------------------------------------------------------------------
 # Convention about Training / Test specific parameters
 # -----------------------------------------------------------------------------
@@ -33,7 +32,6 @@ _C.MODEL.CLS_AGNOSTIC_BBOX_REG = False
 # the path in paths_catalog. Else, it will use it as the specified absolute
 # path
 _C.MODEL.WEIGHT = ""
-
 
 # -----------------------------------------------------------------------------
 # INPUT
@@ -85,7 +83,6 @@ _C.DATALOADER.SIZE_DIVISIBILITY = 0
 # are not batched with portrait images.
 _C.DATALOADER.ASPECT_RATIO_GROUPING = True
 
-
 # ---------------------------------------------------------------------------- #
 # Backbone options
 # ---------------------------------------------------------------------------- #
@@ -100,14 +97,12 @@ _C.MODEL.BACKBONE.CONV_BODY = "R-50-C4"
 # Add StopGrad at a specified stage so the bottom layers are frozen
 _C.MODEL.BACKBONE.FREEZE_CONV_BODY_AT = 2
 
-
 # ---------------------------------------------------------------------------- #
 # FPN options
 # ---------------------------------------------------------------------------- #
 _C.MODEL.FPN = CN()
 _C.MODEL.FPN.USE_GN = False
 _C.MODEL.FPN.USE_RELU = False
-
 
 # ---------------------------------------------------------------------------- #
 # Group Norm options
@@ -119,7 +114,6 @@ _C.MODEL.GROUP_NORM.DIM_PER_GP = -1
 _C.MODEL.GROUP_NORM.NUM_GROUPS = 32
 # GroupNorm's small constant in the denominator
 _C.MODEL.GROUP_NORM.EPSILON = 1e-5
-
 
 # ---------------------------------------------------------------------------- #
 # RPN options
@@ -170,7 +164,6 @@ _C.MODEL.RPN.FPN_POST_NMS_PER_BATCH = True
 # Custom rpn head, empty to use default conv or separable conv
 _C.MODEL.RPN.RPN_HEAD = "SingleConvRPNHead"
 
-
 # ---------------------------------------------------------------------------- #
 # ROI HEADS options
 # ---------------------------------------------------------------------------- #
@@ -205,7 +198,6 @@ _C.MODEL.ROI_HEADS.NMS = 0.5
 # established for the COCO dataset)
 _C.MODEL.ROI_HEADS.DETECTIONS_PER_IMG = 100
 
-
 _C.MODEL.ROI_BOX_HEAD = CN()
 _C.MODEL.ROI_BOX_HEAD.FEATURE_EXTRACTOR = "ResNet50Conv5ROIFeatureExtractor"
 _C.MODEL.ROI_BOX_HEAD.PREDICTOR = "FastRCNNPredictor"
@@ -221,7 +213,6 @@ _C.MODEL.ROI_BOX_HEAD.USE_GN = False
 _C.MODEL.ROI_BOX_HEAD.DILATION = 1
 _C.MODEL.ROI_BOX_HEAD.CONV_HEAD_DIM = 256
 _C.MODEL.ROI_BOX_HEAD.NUM_STACKED_CONVS = 4
-
 
 _C.MODEL.ROI_RELATION_HEAD = CN()
 _C.MODEL.ROI_RELATION_HEAD.FEATURE_EXTRACTOR = "ResNet50Conv5ROIFeatureExtractor"
@@ -304,7 +295,6 @@ _C.MODEL.RESNETS.STAGE_WITH_DCN = (False, False, False, False)
 _C.MODEL.RESNETS.WITH_MODULATED_DCN = False
 _C.MODEL.RESNETS.DEFORMABLE_GROUPS = 1
 
-
 # ---------------------------------------------------------------------------- #
 # RetinaNet Options (Follow the Detectron version)
 # ---------------------------------------------------------------------------- #
@@ -365,7 +355,6 @@ _C.MODEL.RETINANET.INFERENCE_TH = 0.05
 # NMS threshold used in RetinaNet
 _C.MODEL.RETINANET.NMS_TH = 0.4
 
-
 # ---------------------------------------------------------------------------- #
 # FBNet options
 # ---------------------------------------------------------------------------- #
@@ -401,7 +390,6 @@ _C.MODEL.FBNET.MASK_HEAD_STRIDE = 0
 # 0 to use all blocks defined in arch_def
 _C.MODEL.FBNET.RPN_HEAD_BLOCKS = 0
 _C.MODEL.FBNET.RPN_BN_TYPE = ""
-
 
 # ---------------------------------------------------------------------------- #
 # Solver
@@ -464,7 +452,6 @@ _C.TEST.BBOX_AUG.MAX_SIZE = 4000
 
 # Horizontal flip at each scale
 _C.TEST.BBOX_AUG.SCALE_H_FLIP = False
-
 
 # ---------------------------------------------------------------------------- #
 # Misc options

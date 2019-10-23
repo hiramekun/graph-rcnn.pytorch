@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import torch
 from .bounding_box import BoxList
+
 # transpose
 FLIP_LEFT_RIGHT = 0
 FLIP_TOP_BOTTOM = 1
@@ -75,7 +76,6 @@ class BoxPairList(object):
     # def convert_from_boxlist(self, boxes):
     #     # input:
     #     #    boxes: boxlist
-
 
     def _split_into_xyxy(self):
         if self.mode == "xyxy":
@@ -260,10 +260,10 @@ class BoxPairList(object):
         return bbox
 
     def copy_with_union(self):
-        x1 = self.bbox[:, 0::4].min(1)[0].view(-1, 1) # x1
-        y1 = self.bbox[:, 1::4].min(1)[0].view(-1, 1) # y1
-        x2 = self.bbox[:, 2::4].max(1)[0].view(-1, 1) # x2
-        y2 = self.bbox[:, 3::4].max(1)[0].view(-1, 1) # y2
+        x1 = self.bbox[:, 0::4].min(1)[0].view(-1, 1)  # x1
+        y1 = self.bbox[:, 1::4].min(1)[0].view(-1, 1)  # y1
+        x2 = self.bbox[:, 2::4].max(1)[0].view(-1, 1)  # x2
+        y2 = self.bbox[:, 3::4].max(1)[0].view(-1, 1)  # y2
         bbox = BoxList(torch.cat((x1, y1, x2, y2), 1), self.size, self.mode)
         return bbox
 

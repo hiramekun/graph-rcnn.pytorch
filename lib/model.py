@@ -11,14 +11,17 @@ from .scene_parser.parser import build_scene_parser_optimizer
 from .scene_parser.rcnn.utils.metric_logger import MetricLogger
 from .scene_parser.rcnn.utils.timer import Timer, get_time_str
 from .scene_parser.rcnn.utils.comm import synchronize, all_gather, is_main_process, get_world_size
-from .scene_parser.rcnn.utils.visualize import select_top_predictions, overlay_boxes, overlay_class_names
+from .scene_parser.rcnn.utils.visualize import select_top_predictions, overlay_boxes, \
+    overlay_class_names
 from .data.evaluation import evaluate, evaluate_sg
 from .utils.box import bbox_overlaps
+
 
 class SceneGraphGeneration:
     """
     Scene graph generation
     """
+
     def __init__(self, cfg, arguments, local_rank, distributed):
         """
         initialize scene graph generation model
@@ -42,17 +45,19 @@ class SceneGraphGeneration:
             logger.info("Computing frequency prior matrix...")
             fg_matrix, bg_matrix = self._get_freq_prior()
             prob_matrix = fg_matrix.astype(np.float32)
-            prob_matrix[:,:,0] = bg_matrix
+            prob_matrix[:, :, 0] = bg_matrix
 
-            prob_matrix[:,:,0] += 1
-            prob_matrix /= np.sum(prob_matrix, 2)[:,:,None]
+            prob_matrix[:, :, 0] += 1
+            prob_matrix /= np.sum(prob_matrix, 2)[:, :, None]
             # prob_matrix /= float(fg_matrix.max())
             np.save("freq_prior.npy", prob_matrix)
 
         # build scene graph generation model
-        self.scene_parser = build_scene_parser(cfg); self.scene_parser.to(self.device)
+        self.scene_parser = build_scene_parser(cfg);
+        self.scene_parser.to(self.device)
         self.sp_optimizer, self.sp_scheduler, self.sp_checkpointer, self.extra_checkpoint_data = \
-            build_scene_parser_optimizer(cfg, self.scene_parser, local_rank=local_rank, distributed=distributed)
+            build_scene_parser_optimizer(cfg, self.scene_parser, local_rank=local_rank,
+                                         distributed=distributed)
 
         self.arguments.update(self.extra_checkpoint_data)
 
@@ -62,7 +67,7 @@ class SceneGraphGeneration:
             self.cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES,
             self.cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES,
             self.cfg.MODEL.ROI_RELATION_HEAD.NUM_CLASSES
-            ), dtype=np.int64)
+        ), dtype=np.int64)
 
         bg_matrix = np.zeros((
             self.cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES,
@@ -76,7 +81,7 @@ class SceneGraphGeneration:
 
             # For the foreground, we'll just look at everything
             o1o2 = gt_classes[gt_relations[:, :2]]
-            for (o1, o2), gtr in zip(o1o2, gt_relations[:,2]):
+            for (o1, o2), gtr in zip(o1o2, gt_relations[:, 2]):
                 fg_matrix[o1, o2, gtr] += 1
 
             # For the background, get all of the things that overlap.
@@ -95,7 +100,8 @@ class SceneGraphGeneration:
         If no overlapping boxes, use all of them."""
         n_cands = boxes.shape[0]
 
-        overlaps = bbox_overlaps(torch.from_numpy(boxes.astype(np.float)), torch.from_numpy(boxes.astype(np.float))).numpy() > 0
+        overlaps = bbox_overlaps(torch.from_numpy(boxes.astype(np.float)),
+                                 torch.from_numpy(boxes.astype(np.float))).numpy() > 0
         np.fill_diagonal(overlaps, 0)
 
         all_possib = np.ones_like(overlaps, dtype=np.bool)
@@ -127,7 +133,8 @@ class SceneGraphGeneration:
             self.arguments["iteration"] = i
             self.sp_scheduler.step()
             imgs, targets, _ = data
-            imgs = imgs.to(self.device); targets = [target.to(self.device) for target in targets]
+            imgs = imgs.to(self.device);
+            targets = [target.to(self.device) for target in targets]
             loss_dict = self.scene_parser(imgs, targets)
             losses = sum(loss for loss in loss_dict.values())
 
@@ -199,11 +206,13 @@ class SceneGraphGeneration:
             os.mkdir(visualize_folder)
         for i, prediction in enumerate(predictions):
             top_prediction = select_top_predictions(prediction)
-            img = imgs.tensors[i].permute(1, 2, 0).contiguous().cpu().numpy() + np.array(self.cfg.INPUT.PIXEL_MEAN).reshape(1, 1, 3)
+            img = imgs.tensors[i].permute(1, 2, 0).contiguous().cpu().numpy() + np.array(
+                self.cfg.INPUT.PIXEL_MEAN).reshape(1, 1, 3)
             result = img.copy()
             result = overlay_boxes(result, top_prediction)
             result = overlay_class_names(result, top_prediction, dataset.ind_to_classes)
-            cv2.imwrite(os.path.join(visualize_folder, "detection_{}.jpg".format(img_ids[i])), result)
+            cv2.imwrite(os.path.join(visualize_folder, "detection_{}.jpg".format(img_ids[i])),
+                        result)
 
     def test(self, timer=None, visualize=False):
         """
@@ -223,7 +232,8 @@ class SceneGraphGeneration:
         reg_recalls = []
         for i, data in enumerate(self.data_loader_test, 0):
             imgs, targets, image_ids = data
-            imgs = imgs.to(self.device); targets = [target.to(self.device) for target in targets]
+            imgs = imgs.to(self.device);
+            targets = [target.to(self.device) for target in targets]
             if i % 10 == 0:
                 logger.info("inference on batch {}/{}...".format(i, len(self.data_loader_test)))
             with torch.no_grad():
@@ -260,7 +270,8 @@ class SceneGraphGeneration:
         num_devices = get_world_size()
         logger.info(
             "Total run time: {} ({} s / img per device, on {} devices)".format(
-                total_time_str, total_time * num_devices / len(self.data_loader_test.dataset), num_devices
+                total_time_str, total_time * num_devices / len(self.data_loader_test.dataset),
+                num_devices
             )
         )
         total_infer_time = get_time_str(inference_timer.total_time)
@@ -292,16 +303,17 @@ class SceneGraphGeneration:
             expected_results_sigma_tol=self.cfg.TEST.EXPECTED_RESULTS_SIGMA_TOL,
         )
         eval_det_results = evaluate(dataset=self.data_loader_test.dataset,
-                        predictions=predictions,
-                        output_folder=output_folder,
-                        **extra_args)
+                                    predictions=predictions,
+                                    output_folder=output_folder,
+                                    **extra_args)
 
         if self.cfg.MODEL.RELATION_ON:
             eval_sg_results = evaluate_sg(dataset=self.data_loader_test.dataset,
-                            predictions=predictions,
-                            predictions_pred=predictions_pred,
-                            output_folder=output_folder,
-                            **extra_args)
+                                          predictions=predictions,
+                                          predictions_pred=predictions_pred,
+                                          output_folder=output_folder,
+                                          **extra_args)
+
 
 def build_model(cfg, arguments, local_rank, distributed):
     return SceneGraphGeneration(cfg, arguments, local_rank, distributed)

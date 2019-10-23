@@ -10,12 +10,10 @@ if sys.version_info[0] == 2:
 else:
     import xml.etree.ElementTree as ET
 
-
 from maskrcnn_benchmark.structures.bounding_box import BoxList
 
 
 class PascalVOCDataset(torch.utils.data.Dataset):
-
     CLASSES = (
         "__background__ ",
         "aeroplane",

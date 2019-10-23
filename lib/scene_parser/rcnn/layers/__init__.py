@@ -17,8 +17,8 @@ from .sigmoid_focal_loss import SigmoidFocalLoss
 from .dcn.deform_conv_func import deform_conv, modulated_deform_conv
 from .dcn.deform_conv_module import DeformConv, ModulatedDeformConv, ModulatedDeformConvPack
 from .dcn.deform_pool_func import deform_roi_pooling
-from .dcn.deform_pool_module import DeformRoIPooling, DeformRoIPoolingPack, ModulatedDeformRoIPoolingPack
-
+from .dcn.deform_pool_module import DeformRoIPooling, DeformRoIPoolingPack, \
+    ModulatedDeformRoIPoolingPack
 
 __all__ = [
     "nms",
@@ -44,4 +44,3 @@ __all__ = [
     'DeformRoIPoolingPack',
     'ModulatedDeformRoIPoolingPack',
 ]
-

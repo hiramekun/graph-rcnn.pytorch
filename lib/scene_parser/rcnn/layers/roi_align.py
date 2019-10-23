@@ -7,6 +7,7 @@ from torch.nn.modules.utils import _pair
 
 from lib.scene_parser.rcnn import _C
 
+
 # from apex import amp
 
 class _ROIAlign(Function):
@@ -46,6 +47,7 @@ class _ROIAlign(Function):
 
 
 roi_align = _ROIAlign.apply
+
 
 class ROIAlign(nn.Module):
     def __init__(self, output_size, spatial_scale, sampling_ratio):

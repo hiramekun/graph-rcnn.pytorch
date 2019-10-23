@@ -11,6 +11,7 @@ import dill as pkl
 from itertools import tee
 from torch import nn
 
+
 def optimistic_restore(network, state_dict):
     mismatch = False
     own_state = network.state_dict()
@@ -60,10 +61,12 @@ def get_ranking(predictions, labels, num_guesses=5):
     guesses = full_guesses[:, :num_guesses]
     return gt_ranks, guesses
 
+
 def cache(f):
     """
     Caches a computation
     """
+
     def cache_wrapper(fn, *args, **kwargs):
         if os.path.exists(fn):
             with open(fn, 'rb') as file:
@@ -74,6 +77,7 @@ def cache(f):
             with open(fn, 'wb') as file:
                 pkl.dump(data, file)
         return data
+
     return cache_wrapper
 
 
@@ -83,6 +87,7 @@ class Flattener(nn.Module):
         Flattens last 3 dimensions to make it only batch size, -1
         """
         super(Flattener, self).__init__()
+
     def forward(self, x):
         return x.view(x.size(0), -1)
 
@@ -93,12 +98,15 @@ def to_variable(f):
     :param f: 
     :return: 
     """
+
     def variable_wrapper(*args, **kwargs):
         rez = f(*args, **kwargs)
         if isinstance(rez, tuple):
             return tuple([Variable(x) for x in rez])
         return Variable(rez)
+
     return variable_wrapper
+
 
 def arange(base_tensor, n=None):
     new_size = base_tensor.size(0) if n is None else n
@@ -121,8 +129,9 @@ def to_onehot(vec, num_classes, fill=1000):
     arange_inds = vec.new(vec.size(0)).long()
     torch.arange(0, vec.size(0), out=arange_inds)
 
-    onehot_result.view(-1)[vec + num_classes*arange_inds] = fill
+    onehot_result.view(-1)[vec + num_classes * arange_inds] = fill
     return onehot_result
+
 
 def save_net(fname, net):
     h5f = h5py.File(fname, mode='w')
@@ -156,7 +165,8 @@ def batch_index_iterator(len_l, batch_size, skip_end=True):
         iterate_until = (len_l // batch_size) * batch_size
 
     for b_start in range(0, iterate_until, batch_size):
-        yield (b_start, min(b_start+batch_size, len_l))
+        yield (b_start, min(b_start + batch_size, len_l))
+
 
 def batch_map(f, a, batch_size):
     """
@@ -176,7 +186,7 @@ def batch_map(f, a, batch_size):
 
 
 def const_row(fill, l, volatile=False):
-    input_tok = Variable(torch.LongTensor([fill] * l),volatile=volatile)
+    input_tok = Variable(torch.LongTensor([fill] * l), volatile=volatile)
     if torch.cuda.is_available():
         input_tok = input_tok.cuda()
     return input_tok
@@ -200,7 +210,8 @@ def print_para(model):
         strings.append("{:<50s}: {:<16s}({:8d}) ({})".format(
             p_name, '[{}]'.format(','.join(size)), prod, 'grad' if p_req_grad else '    '
         ))
-    return '\n {:.1f}M total parameters \n ----- \n \n{}'.format(total_params / 1000000.0, '\n'.join(strings))
+    return '\n {:.1f}M total parameters \n ----- \n \n{}'.format(total_params / 1000000.0,
+                                                                 '\n'.join(strings))
 
 
 def accuracy(output, target, topk=(1,)):
@@ -246,11 +257,13 @@ def intersect_2d(x1, x2):
     res = (x1[..., None] == x2.T[None, ...]).all(1)
     return res
 
+
 def np_to_variable(x, is_cuda=True, dtype=torch.FloatTensor):
     v = Variable(torch.from_numpy(x).type(dtype))
     if is_cuda:
         v = v.cuda()
     return v
+
 
 def gather_nd(x, index):
     """
@@ -265,10 +278,10 @@ def gather_nd(x, index):
     assert index.size(1) == nd
     dim = x.size(-1)
 
-    sel_inds = index[:,nd-1].clone()
-    mult_factor = x.size(nd-1)
-    for col in range(nd-2, -1, -1): # [n-2, n-3, ..., 1, 0]
-        sel_inds += index[:,col] * mult_factor
+    sel_inds = index[:, nd - 1].clone()
+    mult_factor = x.size(nd - 1)
+    for col in range(nd - 2, -1, -1):  # [n-2, n-3, ..., 1, 0]
+        sel_inds += index[:, col] * mult_factor
         mult_factor *= x.size(col)
 
     grouped = x.view(-1, dim)[sel_inds]
@@ -298,6 +311,7 @@ def enumerate_by_image(im_inds):
     #     # print("On i={} we have s={} e={}".format(i, s, e))
     #     yield i, s, e
 
+
 def diagonal_inds(tensor):
     """
     Returns the indices required to go along first 2 dims of tensor in diag fashion
@@ -309,7 +323,8 @@ def diagonal_inds(tensor):
     size = tensor.size(0)
     arange_inds = tensor.new(size).long()
     torch.arange(0, tensor.size(0), out=arange_inds)
-    return (size+1)*arange_inds
+    return (size + 1) * arange_inds
+
 
 def enumerate_imsize(im_sizes):
     s = 0
@@ -319,6 +334,7 @@ def enumerate_imsize(im_sizes):
         yield i, s, e, h, w, scale, na
 
         s = e
+
 
 def argsort_desc(scores):
     """
@@ -336,13 +352,15 @@ def unravel_index(index, dims):
     for d in dims[::-1]:
         unraveled.append(index_cp % d)
         index_cp /= d
-    return torch.cat([x[:,None] for x in unraveled[::-1]], 1)
+    return torch.cat([x[:, None] for x in unraveled[::-1]], 1)
+
 
 def de_chunkize(tensor, chunks):
     s = 0
     for c in chunks:
-        yield tensor[s:(s+c)]
-        s = s+c
+        yield tensor[s:(s + c)]
+        s = s + c
+
 
 def random_choose(tensor, num):
     "randomly choose indices"
@@ -377,9 +395,9 @@ def transpose_packed_sequence_inds(lengths):
     for i in range(max_len):
         while length_pointer > 0 and lengths[length_pointer] <= i:
             length_pointer -= 1
-        new_inds.append(cum_add[:(length_pointer+1)].copy())
-        cum_add[:(length_pointer+1)] += 1
-        new_lens.append(length_pointer+1)
+        new_inds.append(cum_add[:(length_pointer + 1)].copy())
+        cum_add[:(length_pointer + 1)] += 1
+        new_lens.append(length_pointer + 1)
     new_inds = np.concatenate(new_inds, 0)
     return new_inds, new_lens
 
@@ -412,6 +430,7 @@ def right_shift_packed_sequence_inds(lengths):
             inds.append(cur_ind + i)
         cur_ind += l1
     return inds
+
 
 def clip_grad_norm(named_parameters, max_norm, clip=False, verbose=False):
     r"""Clips gradient norm of an iterable of parameters.
@@ -447,12 +466,14 @@ def clip_grad_norm(named_parameters, max_norm, clip=False, verbose=False):
                 p.grad.data.mul_(clip_coef)
 
     if verbose:
-        print('---Total norm {:.3f} clip coef {:.3f}-----------------'.format(total_norm, clip_coef))
+        print(
+            '---Total norm {:.3f} clip coef {:.3f}-----------------'.format(total_norm, clip_coef))
         for name, norm in sorted(param_to_norm.items(), key=lambda x: -x[1]):
             print("{:<50s}: {:.3f}, ({})".format(name, norm, param_to_shape[name]))
         print('-------------------------------', flush=True)
 
     return total_norm
+
 
 def update_lr(optimizer, lr=1e-4):
     print("------ Learning rate -> {}".format(lr))

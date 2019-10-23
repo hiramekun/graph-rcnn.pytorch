@@ -48,6 +48,7 @@ from __future__ import unicode_literals
 import warnings
 import numpy as np
 
+
 # from core.config import cfg
 # import utils.cython_bbox as cython_bbox
 # import utils.cython_nms as cython_nms
@@ -61,6 +62,7 @@ def boxes_union(boxes1, boxes2):
     ymax = np.maximum(boxes1[:, 3], boxes2[:, 3])
     return np.vstack((xmin, ymin, xmax, ymax)).transpose()
 
+
 def boxes_area(boxes):
     """Compute the area of an array of boxes."""
     w = (boxes[:, 2] - boxes[:, 0] + 1)
@@ -70,7 +72,7 @@ def boxes_area(boxes):
     neg_area_idx = np.where(areas < 0)[0]
     if neg_area_idx.size:
         warnings.warn("Negative areas founds: %d" % neg_area_idx.size, RuntimeWarning)
-    #TODO proper warm up and learning rate may reduce the prob of assertion fail
+    # TODO proper warm up and learning rate may reduce the prob of assertion fail
     # assert np.all(areas >= 0), 'Negative areas founds'
     return areas, neg_area_idx
 
@@ -146,8 +148,8 @@ def clip_tiled_boxes(boxes, im_shape):
     has shape (N, 4 * num_tiled_boxes)."""
     assert boxes.shape[1] % 4 == 0, \
         'boxes.shape[1] is {:d}, but must be divisible by 4.'.format(
-        boxes.shape[1]
-    )
+            boxes.shape[1]
+        )
     # x1 >= 0
     boxes[:, 0::4] = np.maximum(np.minimum(boxes[:, 0::4], im_shape[1] - 1), 0)
     # y1 >= 0
@@ -234,7 +236,6 @@ def bbox_transform_inv(boxes, gt_boxes, weights=(1.0, 1.0, 1.0, 1.0)):
     targets = np.vstack((targets_dx, targets_dy, targets_dw,
                          targets_dh)).transpose()
     return targets
-
 
 # def expand_boxes(boxes, scale):
 #     """Expand an array of boxes by a given scale."""

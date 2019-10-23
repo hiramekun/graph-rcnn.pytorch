@@ -4,17 +4,16 @@ Author: Jianwei Yang, Jiasen Lu, Stefan Lee, Dhruv Batra, Devi Parikh
 Contact: jw2yang@gatech.edu
 """
 
-import os
-import pprint
 import argparse
-import numpy as np
+import os
+
 import torch
 
 from lib.config import cfg
 from lib.model import build_model
-from lib.scene_parser.rcnn.utils.miscellaneous import mkdir, save_config
 from lib.scene_parser.rcnn.utils.comm import synchronize, get_rank
 from lib.scene_parser.rcnn.utils.logger import setup_logger
+from lib.scene_parser.rcnn.utils.miscellaneous import save_config
 
 
 def parse_args():

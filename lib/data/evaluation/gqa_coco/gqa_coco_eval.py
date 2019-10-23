@@ -11,13 +11,13 @@ from lib.scene_parser.mask_rcnn.structures.boxlist_ops import boxlist_iou
 
 
 def do_gqa_coco_evaluation(
-    dataset,
-    predictions,
-    box_only,
-    output_folder,
-    iou_types,
-    expected_results,
-    expected_results_sigma_tol,
+        dataset,
+        predictions,
+        box_only,
+        output_folder,
+        iou_types,
+        expected_results,
+        expected_results_sigma_tol,
 ):
     logger = logging.getLogger("maskrcnn_benchmark.inference")
 
@@ -100,9 +100,10 @@ def prepare_for_gqa_coco_detection(predictions, dataset):
         )
     return gqa_coco_results
 
+
 # inspired from Detectron
 def evaluate_box_proposals(
-    predictions, dataset, thresholds=None, area="all", limit=None
+        predictions, dataset, thresholds=None, area="all", limit=None
 ):
     """Evaluate detection proposal recall metrics. This function is a much
     faster alternative to the official COCO API recall evaluation code. However,
@@ -218,7 +219,7 @@ def evaluate_box_proposals(
 
 
 def evaluate_predictions_on_gqa_coco(
-    coco_gt, coco_results, json_result_file, iou_type="bbox"
+        coco_gt, coco_results, json_result_file, iou_type="bbox"
 ):
     import json
 

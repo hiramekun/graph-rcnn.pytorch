@@ -17,15 +17,15 @@ class PostProcessor(nn.Module):
     """
 
     def __init__(
-        self,
-        score_thresh=0.05,
-        nms=0.5,
-        detections_per_img=100,
-        min_detections_per_img=0,
-        box_coder=None,
-        cls_agnostic_bbox_reg=False,
-        bbox_aug_enabled=False,
-        relation_on=False
+            self,
+            score_thresh=0.05,
+            nms=0.5,
+            detections_per_img=100,
+            min_detections_per_img=0,
+            box_coder=None,
+            cls_agnostic_bbox_reg=False,
+            bbox_aug_enabled=False,
+            relation_on=False
     ):
         """
         Arguments:
@@ -83,9 +83,10 @@ class PostProcessor(nn.Module):
 
         results = []
         for prob, logit, boxes_per_img, features_per_img, image_shape in zip(
-            class_prob, class_logit, proposals, features, image_shapes
+                class_prob, class_logit, proposals, features, image_shapes
         ):
-            boxlist = self.prepare_boxlist(boxes_per_img, features_per_img, prob, logit, image_shape)
+            boxlist = self.prepare_boxlist(boxes_per_img, features_per_img, prob, logit,
+                                           image_shape)
             boxlist = boxlist.clip_to_image(remove_empty=False)
             if not self.bbox_aug_enabled:  # If bbox aug is enabled, we will do it later
                 if not self.relation_on:
@@ -104,7 +105,8 @@ class PostProcessor(nn.Module):
                                " = {}").format(len(boxlist), score_thresh))
                         boxlist = self.filter_results_nm(boxlist, num_classes, thresh=score_thresh)
             if len(boxlist) == 0:
-                import pdb; pdb.set_trace()
+                import pdb;
+                pdb.set_trace()
 
             results.append(boxlist)
         return results
@@ -150,7 +152,7 @@ class PostProcessor(nn.Module):
             inds = inds_all[:, j].nonzero().squeeze(1)
             scores_j = scores[inds, j]
             features_j = features[inds]
-            boxes_j = boxes[inds, j * 4 : (j + 1) * 4]
+            boxes_j = boxes[inds, j * 4: (j + 1) * 4]
             boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
             boxlist_for_class.add_field("scores", scores_j)
             boxlist_for_class.add_field("features", features_j)
@@ -200,7 +202,7 @@ class PostProcessor(nn.Module):
         inds_all = scores > self.score_thresh
         for j in valid_cls.view(-1).cpu():
             scores_j = scores[:, j]
-            boxes_j = boxes[:, j * 4 : (j + 1) * 4]
+            boxes_j = boxes[:, j * 4: (j + 1) * 4]
             boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
             boxlist_for_class.add_field("scores", scores_j)
             boxlist_for_class.add_field("idxs", torch.arange(0, scores.shape[0]).long())
@@ -245,6 +247,7 @@ class PostProcessor(nn.Module):
             idx = idx[:self.detections_per_img]
         result = result[idx]
         return result
+
 
 def make_roi_box_post_processor(cfg):
     use_fpn = cfg.MODEL.ROI_HEADS.USE_FPN

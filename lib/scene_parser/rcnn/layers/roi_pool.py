@@ -7,6 +7,7 @@ from torch.nn.modules.utils import _pair
 
 from lib.scene_parser.rcnn import _C
 
+
 # from apex import amp
 
 class _ROIPool(Function):

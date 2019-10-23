@@ -16,8 +16,10 @@ from .rcnn.modeling.relation_heads.relation_heads import build_roi_relation_head
 
 SCENE_PAESER_DICT = ["sg_baseline", "sg_imp", "sg_msdn", "sg_grcnn", "sg_reldn"]
 
+
 class SceneParser(GeneralizedRCNN):
     "Scene Parser"
+
     def __init__(self, cfg):
         GeneralizedRCNN.__init__(self, cfg)
         self.cfg = cfg
@@ -79,14 +81,15 @@ class SceneParser(GeneralizedRCNN):
         """
         result_obj, result_pred = result
         result_obj_new, result_pred_new = [], []
-        assert len(result_obj) == len(result_pred), "object list must have equal number to predicate list"
+        assert len(result_obj) == len(
+            result_pred), "object list must have equal number to predicate list"
         for result_obj_i, result_pred_i in zip(result_obj, result_pred):
             obj_scores = result_obj_i.get_field("scores")
             rel_inds = result_pred_i.get_field("idx_pairs")
             pred_scores = result_pred_i.get_field("scores")
             scores = torch.stack((
-                obj_scores[rel_inds[:,0]],
-                obj_scores[rel_inds[:,1]],
+                obj_scores[rel_inds[:, 0]],
+                obj_scores[rel_inds[:, 1]],
                 pred_scores.max(1)[0]
             ), 1).prod(1)
             scores_sorted, order = scores.sort(0, descending=True)
@@ -124,13 +127,14 @@ class SceneParser(GeneralizedRCNN):
                 # optimization: during training, if we share the feature extractor between
                 # the box and the relation heads, then we can reuse the features already computed
                 if (
-                    self.training
-                    and self.cfg.MODEL.ROI_RELATION_HEAD.SHARE_BOX_FEATURE_EXTRACTOR
+                        self.training
+                        and self.cfg.MODEL.ROI_RELATION_HEAD.SHARE_BOX_FEATURE_EXTRACTOR
                 ):
                     relation_features = x
                 # During training, self.box() will return the unaltered proposals as "detections"
                 # this makes the API consistent during training and testing
-                x_pairs, detection_pairs, rel_heads_loss = self.rel_heads(relation_features, detections, targets)
+                x_pairs, detection_pairs, rel_heads_loss = self.rel_heads(relation_features,
+                                                                          detections, targets)
                 scene_parser_losses.update(rel_heads_loss)
 
                 x = (x, x_pairs)
@@ -151,24 +155,28 @@ class SceneParser(GeneralizedRCNN):
         # result = self._post_processing(result)
         return result
 
+
 def get_save_dir(cfg):
     train_mode = "joint" if cfg.MODEL.WEIGHT_DET == "" else "step"
     iter_step = max([cfg.MODEL.ROI_RELATION_HEAD.IMP_FEATURE_UPDATE_STEP, \
                      cfg.MODEL.ROI_RELATION_HEAD.MSDN_FEATURE_UPDATE_STEP, \
                      cfg.MODEL.ROI_RELATION_HEAD.GRCNN_FEATURE_UPDATE_STEP])
-    train_alg = (cfg.MODEL.ALGORITHM + '_' + train_mode + '_' + str(iter_step)) if "sg" in cfg.MODEL.ALGORITHM else cfg.MODEL.ALGORITHM
+    train_alg = (cfg.MODEL.ALGORITHM + '_' + train_mode + '_' + str(
+        iter_step)) if "sg" in cfg.MODEL.ALGORITHM else cfg.MODEL.ALGORITHM
     outdir = os.path.join(
         cfg.DATASET.NAME + '_' + cfg.DATASET.MODE + '_' + cfg.DATASET.LOADER,
         cfg.MODEL.BACKBONE.CONV_BODY, train_alg,
         'BatchSize_{}'.format(cfg.DATASET.TRAIN_BATCH_SIZE),
         'Base_LR_{}'.format(cfg.SOLVER.BASE_LR)
-        )
+    )
     if not os.path.exists(os.path.join("checkpoints", outdir)):
         os.makedirs(os.path.join("checkpoints", outdir))
     return os.path.join("checkpoints", outdir)
 
+
 def build_scene_parser(cfg):
     return SceneParser(cfg)
+
 
 def build_scene_parser_optimizer(cfg, model, local_rank=0, distributed=False):
     save_to_disk = True
@@ -183,7 +191,8 @@ def build_scene_parser_optimizer(cfg, model, local_rank=0, distributed=False):
         )
     save_to_disk = get_rank() == 0
     checkpointer = SceneParserCheckpointer(cfg, model, optimizer, scheduler, save_dir, save_to_disk,
-        logger=logging.getLogger("scene_graph_generation.checkpointer"))
+                                           logger=logging.getLogger(
+                                               "scene_graph_generation.checkpointer"))
     model_weight = cfg.MODEL.WEIGHT_DET if cfg.MODEL.WEIGHT_DET != "" else cfg.MODEL.WEIGHT_IMG
     extra_checkpoint_data = checkpointer.load(model_weight, resume=cfg.resume)
     return optimizer, scheduler, checkpointer, extra_checkpoint_data

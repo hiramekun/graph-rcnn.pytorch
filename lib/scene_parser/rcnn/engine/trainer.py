@@ -11,6 +11,7 @@ from lib.scene_parser.rcnn.utils.metric_logger import MetricLogger
 
 from apex import amp
 
+
 def reduce_loss_dict(loss_dict):
     """
     Reduce the loss dictionary from all processes so that process with rank
@@ -37,14 +38,14 @@ def reduce_loss_dict(loss_dict):
 
 
 def do_train(
-    model,
-    data_loader,
-    optimizer,
-    scheduler,
-    checkpointer,
-    device,
-    checkpoint_period,
-    arguments,
+        model,
+        data_loader,
+        optimizer,
+        scheduler,
+        checkpointer,
+        device,
+        checkpoint_period,
+        arguments,
 ):
     logger = logging.getLogger("maskrcnn_benchmark.trainer")
     logger.info("Start training")
@@ -57,7 +58,8 @@ def do_train(
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
 
         if any(len(target) < 1 for target in targets):
-            logger.error(f"Iteration={iteration + 1} || Image Ids used for training {_} || targets Length={[len(target) for target in targets]}" )
+            logger.error(
+                f"Iteration={iteration + 1} || Image Ids used for training {_} || targets Length={[len(target) for target in targets]}")
             continue
         data_time = time.time() - end
         iteration = iteration + 1

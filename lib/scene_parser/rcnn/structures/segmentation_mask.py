@@ -10,7 +10,6 @@ import pycocotools.mask as mask_utils
 FLIP_LEFT_RIGHT = 0
 FLIP_TOP_BOTTOM = 1
 
-
 """ ABSTRACT
 Segmentations come in either:
 1) Binary masks
@@ -67,7 +66,7 @@ class BinaryMaskList(object):
                 masks = torch.tensor(masks).permute(2, 0, 1)  # [n, h, w]
 
                 assert rle_sizes.count(rle_sizes[0]) == len(rle_sizes), (
-                    "All the sizes must be the same size: %s" % rle_sizes
+                        "All the sizes must be the same size: %s" % rle_sizes
                 )
 
                 # in RLE, height come first in "size"
@@ -178,7 +177,7 @@ class BinaryMaskList(object):
             for entity in contour:
                 assert len(entity.shape) == 3
                 assert (
-                    entity.shape[1] == 1
+                        entity.shape[1] == 1
                 ), "Hierarchical contours are not allowed"
                 reshaped_contour.append(entity.reshape(-1).tolist())
             contours.append(reshaped_contour)
@@ -474,7 +473,6 @@ class PolygonList(object):
 
 
 class SegmentationMask(object):
-
     """
     This class stores the segmentations for all objects in the image.
     It wraps BinaryMaskList and PolygonList conveniently.

@@ -2,6 +2,7 @@ from torch import nn
 
 from .deform_pool_func import deform_roi_pooling
 
+
 class DeformRoIPooling(nn.Module):
 
     def __init__(self,

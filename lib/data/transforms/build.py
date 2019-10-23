@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 from . import transforms as T
 
+
 def build_transforms(cfg, is_train=True):
     if is_train:
         min_size = cfg.INPUT.MIN_SIZE_TRAIN

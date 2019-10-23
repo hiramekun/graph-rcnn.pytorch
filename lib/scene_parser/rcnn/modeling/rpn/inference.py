@@ -10,6 +10,7 @@ from lib.scene_parser.rcnn.structures.boxlist_ops import remove_small_boxes
 from ..utils import cat
 from .utils import permute_and_flatten
 
+
 class RPNPostProcessor(torch.nn.Module):
     """
     Performs post-processing on the outputs of the RPN boxes, before feeding the
@@ -17,14 +18,14 @@ class RPNPostProcessor(torch.nn.Module):
     """
 
     def __init__(
-        self,
-        pre_nms_top_n,
-        post_nms_top_n,
-        nms_thresh,
-        min_size,
-        box_coder=None,
-        fpn_post_nms_top_n=None,
-        fpn_post_nms_per_batch=True,
+            self,
+            pre_nms_top_n,
+            post_nms_top_n,
+            nms_thresh,
+            min_size,
+            box_coder=None,
+            fpn_post_nms_top_n=None,
+            fpn_post_nms_per_batch=True,
     ):
         """
         Arguments:

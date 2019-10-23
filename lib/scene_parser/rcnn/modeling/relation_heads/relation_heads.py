@@ -18,6 +18,7 @@ from .msdn.msdn import build_msdn_model
 from .grcnn.grcnn import build_grcnn_model
 from .reldn.reldn import build_reldn_model
 
+
 class ROIRelationHead(torch.nn.Module):
     """
     Generic Relation Head class.
@@ -74,8 +75,12 @@ class ROIRelationHead(torch.nn.Module):
             box_obj = box_obj.unsqueeze(0).repeat(box_obj.shape[0], 1, 1)
             proposal_box_pairs = torch.cat((box_subj.view(-1, 4), box_obj.view(-1, 4)), 1)
 
-            idx_subj = torch.arange(box_subj.shape[0]).view(-1, 1, 1).repeat(1, box_obj.shape[0], 1).to(proposals_per_image.bbox.device)
-            idx_obj = torch.arange(box_obj.shape[0]).view(1, -1, 1).repeat(box_subj.shape[0], 1, 1).to(proposals_per_image.bbox.device)
+            idx_subj = torch.arange(box_subj.shape[0]).view(-1, 1, 1).repeat(1, box_obj.shape[0],
+                                                                             1).to(
+                proposals_per_image.bbox.device)
+            idx_obj = torch.arange(box_obj.shape[0]).view(1, -1, 1).repeat(box_subj.shape[0], 1,
+                                                                           1).to(
+                proposals_per_image.bbox.device)
             proposal_idx_pairs = torch.cat((idx_subj.view(-1, 1), idx_obj.view(-1, 1)), 1)
 
             keep_idx = (proposal_idx_pairs[:, 0] != proposal_idx_pairs[:, 1]).nonzero().view(-1)
@@ -87,7 +92,8 @@ class ROIRelationHead(torch.nn.Module):
                 keep_idx = keep_idx[(ious > 0).nonzero().view(-1)]
             proposal_idx_pairs = proposal_idx_pairs[keep_idx]
             proposal_box_pairs = proposal_box_pairs[keep_idx]
-            proposal_pairs_per_image = BoxPairList(proposal_box_pairs, proposals_per_image.size, proposals_per_image.mode)
+            proposal_pairs_per_image = BoxPairList(proposal_box_pairs, proposals_per_image.size,
+                                                   proposals_per_image.mode)
             proposal_pairs_per_image.add_field("idx_pairs", proposal_idx_pairs)
 
             proposal_pairs.append(proposal_pairs_per_image)
@@ -128,10 +134,11 @@ class ROIRelationHead(torch.nn.Module):
             x = None
             obj_class_logits = None
             _, obj_labels, im_inds = _get_tensor_from_boxlist(proposals, 'labels')
-            _, proposal_idx_pairs, im_inds_pairs = _get_tensor_from_boxlist(proposal_pairs, 'idx_pairs')
+            _, proposal_idx_pairs, im_inds_pairs = _get_tensor_from_boxlist(proposal_pairs,
+                                                                            'idx_pairs')
             rel_inds = _get_rel_inds(im_inds, im_inds_pairs, proposal_idx_pairs)
             pred_class_logits = self.freq_bias.index_with_labels(
-                torch.stack((obj_labels[rel_inds[:, 0]],obj_labels[rel_inds[:, 1]],), 1))
+                torch.stack((obj_labels[rel_inds[:, 0]], obj_labels[rel_inds[:, 1]],), 1))
         else:
             # extract features that will be fed to the final classifier. The
             # feature_extractor generally corresponds to the pooler + heads
@@ -156,23 +163,27 @@ class ROIRelationHead(torch.nn.Module):
                 obj_scores = obj_scores.split(boxes_per_image, dim=0)
                 obj_labels = obj_labels.split(boxes_per_image, dim=0)
                 for proposal, obj_logit, obj_score, obj_label in \
-                    zip(proposals, obj_logits, obj_scores, obj_labels):
+                        zip(proposals, obj_logits, obj_scores, obj_labels):
                     proposal.add_field("logits", obj_logit)
                     proposal.add_field("scores", obj_score)
                     proposal.add_field("labels", obj_label)
-            result = self.post_processor((pred_class_logits), proposal_pairs, use_freq_prior=self.cfg.MODEL.USE_FREQ_PRIOR)
+            result = self.post_processor((pred_class_logits), proposal_pairs,
+                                         use_freq_prior=self.cfg.MODEL.USE_FREQ_PRIOR)
             return x, result, {}
 
         loss_obj_classifier = 0
         if obj_class_logits is not None:
-            loss_obj_classifier = self.loss_evaluator.obj_classification_loss(proposals, [obj_class_logits])
+            loss_obj_classifier = self.loss_evaluator.obj_classification_loss(proposals,
+                                                                              [obj_class_logits])
         loss_pred_classifier = self.loss_evaluator([pred_class_logits])
 
         return (
             x,
             proposal_pairs,
-            dict(loss_obj_classifier=loss_obj_classifier, loss_pred_classifier=loss_pred_classifier),
+            dict(loss_obj_classifier=loss_obj_classifier,
+                 loss_pred_classifier=loss_pred_classifier),
         )
+
 
 def build_roi_relation_head(cfg, in_channels):
     """

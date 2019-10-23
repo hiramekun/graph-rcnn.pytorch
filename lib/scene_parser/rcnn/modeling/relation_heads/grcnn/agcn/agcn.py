@@ -5,12 +5,14 @@ import numpy as np
 import math
 import time
 
+
 def normal_init(m, mean, stddev, truncated=False):
     if truncated:
-        m.weight.data.normal_().fmod_(2).mul_(stddev).add_(mean) # not a perfect approximation
+        m.weight.data.normal_().fmod_(2).mul_(stddev).add_(mean)  # not a perfect approximation
     else:
         m.weight.data.normal_(mean, stddev)
         m.bias.data.zero_()
+
 
 class _Collection_Unit(nn.Module):
     def __init__(self, dim_in, dim_out):
@@ -41,38 +43,44 @@ class _Collection_Unit(nn.Module):
     #     out = F.relu(collect_avg)
     #     return out
 
+
 class _Update_Unit(nn.Module):
     def __init__(self, dim):
         super(_Update_Unit, self).__init__()
+
     def forward(self, target, source):
         assert target.size() == source.size(), "source dimension must be equal to target dimension"
         update = target + source
         return update
 
+
 class _GraphConvolutionLayer_Collect(nn.Module):
     """ graph convolutional layer """
     """ collect information from neighbors """
+
     def __init__(self, dim_obj, dim_rel):
         super(_GraphConvolutionLayer_Collect, self).__init__()
         self.collect_units = nn.ModuleList()
-        self.collect_units.append(_Collection_Unit(dim_rel, dim_obj)) # obj (subject) from rel
-        self.collect_units.append(_Collection_Unit(dim_rel, dim_obj)) # obj (object) from rel
-        self.collect_units.append(_Collection_Unit(dim_obj, dim_rel)) # rel from obj (subject)
-        self.collect_units.append(_Collection_Unit(dim_obj, dim_rel)) # rel from obj (object)
-        self.collect_units.append(_Collection_Unit(dim_obj, dim_obj)) # obj from obj
+        self.collect_units.append(_Collection_Unit(dim_rel, dim_obj))  # obj (subject) from rel
+        self.collect_units.append(_Collection_Unit(dim_rel, dim_obj))  # obj (object) from rel
+        self.collect_units.append(_Collection_Unit(dim_obj, dim_rel))  # rel from obj (subject)
+        self.collect_units.append(_Collection_Unit(dim_obj, dim_rel))  # rel from obj (object)
+        self.collect_units.append(_Collection_Unit(dim_obj, dim_obj))  # obj from obj
 
     def forward(self, target, source, attention, unit_id):
         collection = self.collect_units[unit_id](target, source, attention)
         return collection
 
+
 class _GraphConvolutionLayer_Update(nn.Module):
     """ graph convolutional layer """
     """ update target nodes """
+
     def __init__(self, dim_obj, dim_rel):
         super(_GraphConvolutionLayer_Update, self).__init__()
         self.update_units = nn.ModuleList()
-        self.update_units.append(_Update_Unit(dim_obj)) # obj from others
-        self.update_units.append(_Update_Unit(dim_rel)) # rel from others
+        self.update_units.append(_Update_Unit(dim_obj))  # obj from others
+        self.update_units.append(_Update_Unit(dim_rel))  # rel from others
 
     def forward(self, target, source, unit_id):
         update = self.update_units[unit_id](target, source)

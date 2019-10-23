@@ -1,17 +1,15 @@
 import os
-import os.path as osp
-import numpy as np
+
 from yacs.config import CfgNode as CN
-from easydict import EasyDict as edict
 
 _C = CN()
 
 """"======================================="""
 _C.DATASET = CN()
 _C.DATASET.NAME = "vg"
-_C.DATASET.MODE = "benchmark"                    # dataset mode, benchmark | 1600-400-400 | 2500-600-400, etc
+_C.DATASET.MODE = "benchmark"  # dataset mode, benchmark | 1600-400-400 | 2500-600-400, etc
 _C.DATASET.PATH = "datasets/vg_bm"
-_C.DATASET.LOADER = 'object'                     # which kind of data loader to use, object | object+attribute | object+attribute+relationship
+_C.DATASET.LOADER = 'object'  # which kind of data loader to use, object | object+attribute | object+attribute+relationship
 _C.DATASET.TRAIN_BATCH_SIZE = 4
 _C.DATASET.TEST_BATCH_SIZE = 4
 _C.DATASET.SIZE_DIVISIBILITY = 32
@@ -21,17 +19,17 @@ _C.DATASET.IND_TO_PREDICATE = ""
 
 """"======================================="""
 _C.INPUT = CN()
-_C.INPUT.MIN_SIZE_TRAIN = (800,)   # Size of the smallest side of the image during training
-_C.INPUT.MAX_SIZE_TRAIN = 1024     # Maximum size of the side of the image during training
-_C.INPUT.MIN_SIZE_TEST = 800       # Size of the smallest side of the image during testing
-_C.INPUT.MAX_SIZE_TEST = 1024      # Maximum size of the side of the image during testing
+_C.INPUT.MIN_SIZE_TRAIN = (800,)  # Size of the smallest side of the image during training
+_C.INPUT.MAX_SIZE_TRAIN = 1024  # Maximum size of the side of the image during training
+_C.INPUT.MIN_SIZE_TEST = 800  # Size of the smallest side of the image during testing
+_C.INPUT.MAX_SIZE_TEST = 1024  # Maximum size of the side of the image during testing
 _C.INPUT.PIXEL_MEAN = [102.9801, 115.9465, 122.7717]  # Values to be used for image normalization
 _C.INPUT.PIXEL_STD = [1., 1., 1.]  # Values to be used for image normalization
-_C.INPUT.TO_BGR255 = True          # Convert image to BGR format (for Caffe2 models), in range 0-255
-_C.INPUT.BRIGHTNESS = 0.0          # Image ColorJitter
-_C.INPUT.CONTRAST = 0.0            # Image ColorJitter
-_C.INPUT.SATURATION = 0.0          # Image ColorJitter
-_C.INPUT.HUE = 0.0                 # Image ColorJitter
+_C.INPUT.TO_BGR255 = True  # Convert image to BGR format (for Caffe2 models), in range 0-255
+_C.INPUT.BRIGHTNESS = 0.0  # Image ColorJitter
+_C.INPUT.CONTRAST = 0.0  # Image ColorJitter
+_C.INPUT.SATURATION = 0.0  # Image ColorJitter
+_C.INPUT.HUE = 0.0  # Image ColorJitter
 _C.INPUT.VERTICAL_FLIP_PROB_TRAIN = 0.0
 
 """"======================================="""
@@ -48,29 +46,29 @@ _C.MODEL.RELATION_ON = False
 _C.MODEL.DEVICE = "cuda"
 _C.MODEL.META_ARCHITECTURE = "GeneralizedRCNN"
 _C.MODEL.CLS_AGNOSTIC_BBOX_REG = False
-_C.MODEL.WEIGHT_IMG = ""    # weight loading path for imagenet pretrained model
-_C.MODEL.WEIGHT_DET = ""    # weight loading path for detector pre-trained model
-_C.MODEL.WEIGHT_SGG = ""    # weight loading path for scene graph generator pre-trained model
+_C.MODEL.WEIGHT_IMG = ""  # weight loading path for imagenet pretrained model
+_C.MODEL.WEIGHT_DET = ""  # weight loading path for detector pre-trained model
+_C.MODEL.WEIGHT_SGG = ""  # weight loading path for scene graph generator pre-trained model
 
 # If the WEIGHT starts with a catalog://, like :R-50, the code will look for
 # the path in paths_catalog. Else, it will use it as the specified absolute
 # path
 _C.MODEL.BACKBONE = CN()  # Backbone options
-_C.MODEL.BACKBONE.CONV_BODY = "R-50-C4" # The backbone conv body to use # (e.g., 'FPN.add_fpn_ResNet101_conv5_body' to specify a ResNet-101-FPN backbone)
-_C.MODEL.BACKBONE.FREEZE_CONV_BODY_AT = 2 # Add StopGrad at a specified stage so the bottom layers are frozen
+_C.MODEL.BACKBONE.CONV_BODY = "R-50-C4"  # The backbone conv body to use # (e.g., 'FPN.add_fpn_ResNet101_conv5_body' to specify a ResNet-101-FPN backbone)
+_C.MODEL.BACKBONE.FREEZE_CONV_BODY_AT = 2  # Add StopGrad at a specified stage so the bottom layers are frozen
 _C.MODEL.BACKBONE.OUT_CHANNELS = 256 * 4
 _C.MODEL.BACKBONE.FREEZE_PARAMETER = False
 
-_C.MODEL.FPN = CN() # FPN options
+_C.MODEL.FPN = CN()  # FPN options
 _C.MODEL.FPN.USE_GN = False
 _C.MODEL.FPN.USE_RELU = False
 
-_C.MODEL.GROUP_NORM = CN() # Group Norm options
-_C.MODEL.GROUP_NORM.DIM_PER_GP = -1 # Number of dimensions per group in GroupNorm (-1 if using NUM_GROUPS)
-_C.MODEL.GROUP_NORM.NUM_GROUPS = 32 # Number of groups in GroupNorm (-1 if using DIM_PER_GP)
-_C.MODEL.GROUP_NORM.EPSILON = 1e-5 # GroupNorm's small constant in the denominator
+_C.MODEL.GROUP_NORM = CN()  # Group Norm options
+_C.MODEL.GROUP_NORM.DIM_PER_GP = -1  # Number of dimensions per group in GroupNorm (-1 if using NUM_GROUPS)
+_C.MODEL.GROUP_NORM.NUM_GROUPS = 32  # Number of groups in GroupNorm (-1 if using DIM_PER_GP)
+_C.MODEL.GROUP_NORM.EPSILON = 1e-5  # GroupNorm's small constant in the denominator
 
-_C.MODEL.RPN = CN() # RPN options
+_C.MODEL.RPN = CN()  # RPN options
 _C.MODEL.RPN.USE_FPN = False
 # Base RPN anchor sizes given in absolute pixels w.r.t. the scaled network input
 _C.MODEL.RPN.ANCHOR_SIZES = (32, 64, 128, 256, 512)
@@ -105,7 +103,7 @@ _C.MODEL.RPN.POST_NMS_TOP_N_TEST = 1000
 _C.MODEL.RPN.NMS_THRESH = 0.7
 # Proposal height and width both need to be greater than RPN_MIN_SIZE
 # (a the scale used during training or inference)
-_C.MODEL.RPN.MIN_SIZE = 4 # 0
+_C.MODEL.RPN.MIN_SIZE = 4  # 0
 # Number of top scoring RPN proposals to keep after combining proposals from
 # all FPN levels
 _C.MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN = 2000
@@ -230,7 +228,6 @@ _C.MODEL.RESNETS.STAGE_WITH_DCN = (False, False, False, False)
 _C.MODEL.RESNETS.WITH_MODULATED_DCN = False
 _C.MODEL.RESNETS.DEFORMABLE_GROUPS = 1
 
-
 # ---------------------------------------------------------------------------- #
 # RetinaNet Options (Follow the Detectron version)
 # ---------------------------------------------------------------------------- #
@@ -290,7 +287,6 @@ _C.MODEL.RETINANET.INFERENCE_TH = 0.05
 
 # NMS threshold used in RetinaNet
 _C.MODEL.RETINANET.NMS_TH = 0.4
-
 
 # ---------------------------------------------------------------------------- #
 # FBNet options
@@ -361,7 +357,6 @@ _C.TEST.BBOX_AUG.MAX_SIZE = 4000
 
 # Horizontal flip at each scale
 _C.TEST.BBOX_AUG.SCALE_H_FLIP = False
-
 
 # ---------------------------------------------------------------------------- #
 # Solver

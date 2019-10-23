@@ -3,6 +3,7 @@ import torch.nn as nn
 import numpy as np
 from lib.scene_parser.rcnn.utils.boxes import bbox_transform_inv, boxes_union
 
+
 class SpatialFeature(nn.Module):
     def __init__(self, cfg, dim):
         super(SpatialFeature, self).__init__()
@@ -38,12 +39,14 @@ class SpatialFeature(nn.Module):
         for proposal_pair in proposal_pairs:
             boxes_subj = proposal_pair.bbox[:, :4]
             boxes_obj = proposal_pair.bbox[:, 4:]
-            spt_feat = self._get_spt_features(boxes_subj.cpu().numpy(), boxes_obj.cpu().numpy(), proposal_pair.size[0], proposal_pair.size[1])
+            spt_feat = self._get_spt_features(boxes_subj.cpu().numpy(), boxes_obj.cpu().numpy(),
+                                              proposal_pair.size[0], proposal_pair.size[1])
             spt_feat = torch.from_numpy(spt_feat).to(boxes_subj.device)
             spt_feats.append(spt_feat)
         spt_feats = torch.cat(spt_feats, 0).float()
         spt_feats = self.model(spt_feats)
         return spt_feats
+
 
 def build_spatial_feature(cfg, dim=0):
     return SpatialFeature(cfg, dim)

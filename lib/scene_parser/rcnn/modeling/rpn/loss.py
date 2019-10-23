@@ -88,7 +88,6 @@ class RPNLossComputation(object):
 
         return labels, regression_targets
 
-
     def __call__(self, anchors, objectness, box_regression, targets):
         """
         Arguments:
@@ -110,7 +109,7 @@ class RPNLossComputation(object):
         sampled_inds = torch.cat([sampled_pos_inds, sampled_neg_inds], dim=0)
 
         objectness, box_regression = \
-                concat_box_prediction_layers(objectness, box_regression)
+            concat_box_prediction_layers(objectness, box_regression)
 
         objectness = objectness.squeeze()
 
@@ -129,6 +128,7 @@ class RPNLossComputation(object):
         )
 
         return objectness_loss, box_loss
+
 
 # This function should be overwritten in RetinaNet
 def generate_rpn_labels(matched_targets):

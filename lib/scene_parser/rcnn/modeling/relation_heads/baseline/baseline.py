@@ -9,6 +9,7 @@ from torch.nn import Parameter
 from ..roi_relation_feature_extractors import make_roi_relation_feature_extractor
 from ..roi_relation_predictors import make_roi_relation_predictor
 
+
 class Baseline(nn.Module):
     def __init__(self, cfg, in_channels):
         super(Baseline, self).__init__()
@@ -17,7 +18,7 @@ class Baseline(nn.Module):
         self.predictor = make_roi_relation_predictor(cfg, self.pred_feature_extractor.out_channels)
 
     def forward(self, features, proposals, proposal_pairs):
-        obj_class_logits = None # no need to predict object class again
+        obj_class_logits = None  # no need to predict object class again
         if self.training:
             x, rel_inds = self.pred_feature_extractor(features, proposals, proposal_pairs)
             rel_class_logits = self.predictor(x)
@@ -33,6 +34,7 @@ class Baseline(nn.Module):
             obj_class_labels = obj_class_logits[:, 1:].max(1)[1] + 1
 
         return x, obj_class_logits, rel_class_logits, obj_class_labels, rel_inds
+
 
 def build_baseline_model(cfg, in_channels):
     return Baseline(cfg, in_channels)

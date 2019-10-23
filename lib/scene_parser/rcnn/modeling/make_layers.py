@@ -32,7 +32,7 @@ def group_norm(out_channels, affine=True, divisor=1):
     out_channels = out_channels // divisor
     dim_per_gp = cfg.MODEL.GROUP_NORM.DIM_PER_GP // divisor
     num_groups = cfg.MODEL.GROUP_NORM.NUM_GROUPS // divisor
-    eps = cfg.MODEL.GROUP_NORM.EPSILON # default: 1e-5
+    eps = cfg.MODEL.GROUP_NORM.EPSILON  # default: 1e-5
     return torch.nn.GroupNorm(
         get_group_gn(out_channels, dim_per_gp, num_groups),
         out_channels,
@@ -42,13 +42,13 @@ def group_norm(out_channels, affine=True, divisor=1):
 
 
 def make_conv3x3(
-    in_channels,
-    out_channels,
-    dilation=1,
-    stride=1,
-    use_gn=False,
-    use_relu=False,
-    kaiming_init=True
+        in_channels,
+        out_channels,
+        dilation=1,
+        stride=1,
+        use_gn=False,
+        use_relu=False,
+        kaiming_init=True
 ):
     conv = Conv2d(
         in_channels,
@@ -67,7 +67,7 @@ def make_conv3x3(
         torch.nn.init.normal_(conv.weight, std=0.01)
     if not use_gn:
         nn.init.constant_(conv.bias, 0)
-    module = [conv,]
+    module = [conv, ]
     if use_gn:
         module.append(group_norm(out_channels))
     if use_relu:
@@ -94,7 +94,7 @@ def make_fc(dim_in, hidden_dim, use_gn=False):
 
 def conv_with_kaiming_uniform(use_gn=False, use_relu=False):
     def make_conv(
-        in_channels, out_channels, kernel_size, stride=1, dilation=1
+            in_channels, out_channels, kernel_size, stride=1, dilation=1
     ):
         conv = Conv2d(
             in_channels,
@@ -110,7 +110,7 @@ def conv_with_kaiming_uniform(use_gn=False, use_relu=False):
         nn.init.kaiming_uniform_(conv.weight, a=1)
         if not use_gn:
             nn.init.constant_(conv.bias, 0)
-        module = [conv,]
+        module = [conv, ]
         if use_gn:
             module.append(group_norm(out_channels))
         if use_relu:

@@ -21,13 +21,13 @@ class FastRCNNLossComputation(object):
     """
 
     def __init__(
-        self,
-        proposal_matcher,
-        fg_bg_pair_sampler,
-        box_coder,
-        cls_agnostic_bbox_reg=False,
-        use_matched_pairs_only=False,
-        minimal_matched_pairs=0,
+            self,
+            proposal_matcher,
+            fg_bg_pair_sampler,
+            box_coder,
+            cls_agnostic_bbox_reg=False,
+            use_matched_pairs_only=False,
+            minimal_matched_pairs=0,
     ):
         """
         Arguments:
@@ -54,11 +54,13 @@ class FastRCNNLossComputation(object):
                 match_j = match_quality_matrix[j].view(1, -1)
                 match_ij = ((match_i + match_j) / 2)
                 # rmeove duplicate index
-                non_duplicate_idx = (torch.eye(match_ij.shape[0]).view(-1) == 0).nonzero().view(-1).to(match_ij.device)
-                match_ij = match_ij.view(-1) # [::match_quality_matrix.shape[1]] = 0
+                non_duplicate_idx = (torch.eye(match_ij.shape[0]).view(-1) == 0).nonzero().view(
+                    -1).to(match_ij.device)
+                match_ij = match_ij.view(-1)  # [::match_quality_matrix.shape[1]] = 0
                 match_ij = match_ij[non_duplicate_idx]
                 temp.append(match_ij)
-                boxi = target.bbox[i]; boxj = target.bbox[j]
+                boxi = target.bbox[i];
+                boxj = target.bbox[j]
                 box_pair = torch.cat((boxi, boxj), 0)
                 target_box_pairs.append(box_pair)
 
@@ -75,8 +77,10 @@ class FastRCNNLossComputation(object):
         box_obj = box_obj.unsqueeze(0).repeat(box_obj.shape[0], 1, 1)
         proposal_box_pairs = torch.cat((box_subj.view(-1, 4), box_obj.view(-1, 4)), 1)
 
-        idx_subj = torch.arange(box_subj.shape[0]).view(-1, 1, 1).repeat(1, box_obj.shape[0], 1).to(proposal.bbox.device)
-        idx_obj = torch.arange(box_obj.shape[0]).view(1, -1, 1).repeat(box_subj.shape[0], 1, 1).to(proposal.bbox.device)
+        idx_subj = torch.arange(box_subj.shape[0]).view(-1, 1, 1).repeat(1, box_obj.shape[0], 1).to(
+            proposal.bbox.device)
+        idx_obj = torch.arange(box_obj.shape[0]).view(1, -1, 1).repeat(box_subj.shape[0], 1, 1).to(
+            proposal.bbox.device)
         proposal_idx_pairs = torch.cat((idx_subj.view(-1, 1), idx_obj.view(-1, 1)), 1)
 
         non_duplicate_idx = (proposal_idx_pairs[:, 0] != proposal_idx_pairs[:, 1]).nonzero()
@@ -154,7 +158,7 @@ class FastRCNNLossComputation(object):
         proposal_pairs = list(proposal_pairs)
         # add corresponding label and regression_targets information to the bounding boxes
         for labels_per_image, proposal_pairs_per_image in zip(
-            labels, proposal_pairs
+                labels, proposal_pairs
         ):
             proposal_pairs_per_image.add_field("labels", labels_per_image)
             # proposals_per_image.add_field(
@@ -164,7 +168,7 @@ class FastRCNNLossComputation(object):
         # distributed sampled proposals, that were obtained on all feature maps
         # concatenated via the fg_bg_sampler, into individual feature map levels
         for img_idx, (pos_inds_img, neg_inds_img) in enumerate(
-            zip(sampled_pos_inds, sampled_neg_inds)
+                zip(sampled_pos_inds, sampled_neg_inds)
         ):
             img_sampled_inds = torch.nonzero(pos_inds_img | neg_inds_img).squeeze(1)
             proposal_pairs_per_image = proposal_pairs[img_idx][img_sampled_inds]
@@ -226,7 +230,8 @@ def make_roi_relation_loss_evaluator(cfg):
     box_coder = BoxCoder(weights=bbox_reg_weights)
 
     fg_bg_sampler = BalancedPositiveNegativePairSampler(
-        cfg.MODEL.ROI_RELATION_HEAD.BATCH_SIZE_PER_IMAGE, cfg.MODEL.ROI_RELATION_HEAD.POSITIVE_FRACTION
+        cfg.MODEL.ROI_RELATION_HEAD.BATCH_SIZE_PER_IMAGE,
+        cfg.MODEL.ROI_RELATION_HEAD.POSITIVE_FRACTION
     )
 
     cls_agnostic_bbox_reg = cfg.MODEL.CLS_AGNOSTIC_BBOX_REG

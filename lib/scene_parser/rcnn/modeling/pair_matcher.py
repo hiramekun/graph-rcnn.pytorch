@@ -70,7 +70,7 @@ class PairMatcher(object):
         # Assign candidate matches with low quality to negative (unassigned) values
         below_low_threshold = matched_vals < self.low_threshold
         between_thresholds = (matched_vals >= self.low_threshold) & (
-            matched_vals < self.high_threshold
+                matched_vals < self.high_threshold
         )
         matches[below_low_threshold] = PairMatcher.BELOW_LOW_THRESHOLD
         matches[between_thresholds] = PairMatcher.BETWEEN_THRESHOLDS

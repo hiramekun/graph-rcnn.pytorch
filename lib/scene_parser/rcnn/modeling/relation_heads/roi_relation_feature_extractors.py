@@ -10,6 +10,7 @@ from lib.scene_parser.rcnn.modeling.make_layers import group_norm
 from lib.scene_parser.rcnn.modeling.make_layers import make_fc
 from .sparse_targets import _get_tensor_from_boxlist, _get_rel_inds
 
+
 @registry.ROI_RELATION_FEATURE_EXTRACTORS.register("ResNet50Conv5ROIRelationFeatureExtractor")
 class ResNet50Conv5ROIFeatureExtractor(nn.Module):
     def __init__(self, config, in_channels):
@@ -47,7 +48,6 @@ class ResNet50Conv5ROIFeatureExtractor(nn.Module):
         return x
 
     def forward(self, x, proposals, proposal_pairs):
-
         # acquire tensor format per batch data
         # bboxes, cls_prob (N, k)
         # im_inds: (N,1), img ind for each roi in the batch
@@ -140,7 +140,7 @@ class FPNXconv1fcFeatureExtractor(nn.Module):
             xconvs.append(nn.ReLU(inplace=True))
 
         self.add_module("xconvs", nn.Sequential(*xconvs))
-        for modules in [self.xconvs,]:
+        for modules in [self.xconvs, ]:
             for l in modules.modules():
                 if isinstance(l, nn.Conv2d):
                     torch.nn.init.normal_(l.weight, std=0.01)

@@ -7,6 +7,7 @@ from lib.scene_parser.rcnn.structures.image_list import to_image_list
 from lib.scene_parser.rcnn.structures.bounding_box import BoxList
 from lib.scene_parser.rcnn.modeling.roi_heads.box_head.inference import make_roi_box_post_processor
 
+
 def im_detect_bbox_aug(model, images, device):
     # Collect detections computed under different transformations
     boxlists_ts = []

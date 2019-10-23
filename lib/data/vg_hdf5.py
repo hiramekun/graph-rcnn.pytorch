@@ -12,9 +12,10 @@ from torch.utils.data import Dataset
 from lib.scene_parser.rcnn.structures.bounding_box import BoxList
 from lib.utils.box import bbox_overlaps
 
+
 class vg_hdf5(Dataset):
     def __init__(self, cfg, split="train", transforms=None, num_im=-1, num_val_im=5000,
-            filter_duplicate_rels=True, filter_non_overlap=True, filter_empty_rels=True):
+                 filter_duplicate_rels=True, filter_non_overlap=True, filter_empty_rels=True):
         assert split == "train" or split == "test", "split must be one of [train, val, test]"
         assert num_im >= -1, "the number of samples must be >= 0"
 
@@ -30,23 +31,24 @@ class vg_hdf5(Dataset):
         self.image_file = os.path.join(self.data_dir, "imdb_1024.h5")
         # read in dataset from a h5 file and a dict (json) file
         assert os.path.exists(self.data_dir), \
-            "cannot find folder {}, please download the visual genome data into this folder".format(self.data_dir)
+            "cannot find folder {}, please download the visual genome data into this folder".format(
+                self.data_dir)
         self.im_h5 = h5py.File(self.image_file, 'r')
         self.info = json.load(open(os.path.join(self.data_dir, "VG-SGG-dicts.json"), 'r'))
-        self.im_refs = self.im_h5['images'] # image data reference
+        self.im_refs = self.im_h5['images']  # image data reference
         im_scale = self.im_refs.shape[2]
 
         # add background class
         self.info['label_to_idx']['__background__'] = 0
         self.class_to_ind = self.info['label_to_idx']
         self.ind_to_classes = sorted(self.class_to_ind, key=lambda k:
-                               self.class_to_ind[k])
+        self.class_to_ind[k])
         # cfg.ind_to_class = self.ind_to_classes
 
         self.predicate_to_ind = self.info['predicate_to_idx']
         self.predicate_to_ind['__background__'] = 0
         self.ind_to_predicates = sorted(self.predicate_to_ind, key=lambda k:
-                                  self.predicate_to_ind[k])
+        self.predicate_to_ind[k])
         # cfg.ind_to_predicate = self.ind_to_predicates
 
         self.split_mask, self.image_index, self.im_sizes, self.gt_boxes, self.gt_classes, self.relationships = load_graphs(
@@ -83,7 +85,8 @@ class vg_hdf5(Dataset):
             'info': {'description': 'ayy lmao'},
             'images': [{'id': i} for i in range(self.__len__())],
             'categories': [{'supercategory': 'person',
-                               'id': i, 'name': name} for i, name in enumerate(self.ind_to_classes) if name != '__background__'],
+                            'id': i, 'name': name} for i, name in enumerate(self.ind_to_classes) if
+                           name != '__background__'],
             'annotations': anns,
         }
         fauxcoco.createIndex()
@@ -93,8 +96,8 @@ class vg_hdf5(Dataset):
         w, h = self.im_sizes[idx, :]
         ridx = self.image_index[idx]
         im = self.im_refs[ridx]
-        im = im[:, :h, :w] # crop out
-        im = im.transpose((1,2,0)) # c h w -> h w c
+        im = im[:, :h, :w]  # crop out
+        im = im.transpose((1, 2, 0))  # c h w -> h w c
         return im
 
     def __len__(self):
@@ -105,7 +108,8 @@ class vg_hdf5(Dataset):
         get dataset item
         """
         # get image
-        img = Image.fromarray(self._im_getter(index)); width, height = img.size
+        img = Image.fromarray(self._im_getter(index));
+        width, height = img.size
 
         # get object bounding boxes, labels and relations
         obj_boxes = self.gt_boxes[index].copy()
@@ -119,7 +123,8 @@ class vg_hdf5(Dataset):
             all_rel_sets = defaultdict(list)
             for (o0, o1, r) in obj_relation_triplets:
                 all_rel_sets[(o0, o1)].append(r)
-            obj_relation_triplets = [(k[0], k[1], np.random.choice(v)) for k,v in all_rel_sets.items()]
+            obj_relation_triplets = [(k[0], k[1], np.random.choice(v)) for k, v in
+                                     all_rel_sets.items()]
             obj_relation_triplets = np.array(obj_relation_triplets)
 
         obj_relations = np.zeros((obj_boxes.shape[0], obj_boxes.shape[0]))
@@ -154,7 +159,8 @@ class vg_hdf5(Dataset):
             all_rel_sets = defaultdict(list)
             for (o0, o1, r) in obj_relation_triplets:
                 all_rel_sets[(o0, o1)].append(r)
-            obj_relation_triplets = [(k[0], k[1], np.random.choice(v)) for k,v in all_rel_sets.items()]
+            obj_relation_triplets = [(k[0], k[1], np.random.choice(v)) for k, v in
+                                     all_rel_sets.items()]
             obj_relation_triplets = np.array(obj_relation_triplets)
 
         obj_relations = np.zeros((obj_boxes.shape[0], obj_boxes.shape[0]))
@@ -180,7 +186,8 @@ class vg_hdf5(Dataset):
         return self.ind_to_classes[class_id]
 
 
-def load_graphs(graphs_file, images_file, mode='train', num_im=-1, num_val_im=0, filter_empty_rels=True,
+def load_graphs(graphs_file, images_file, mode='train', num_im=-1, num_val_im=0,
+                filter_empty_rels=True,
                 filter_non_overlap=False):
     """
     Load the file containing the GT boxes and relations, as well as the dataset split
@@ -220,7 +227,6 @@ def load_graphs(graphs_file, images_file, mode='train', num_im=-1, num_val_im=0,
             image_index = image_index[:num_val_im]
         elif mode == 'train':
             image_index = image_index[num_val_im:]
-
 
     split_mask = np.zeros_like(data_split).astype(bool)
     split_mask[image_index] = True
@@ -271,7 +277,8 @@ def load_graphs(graphs_file, images_file, mode='train', num_im=-1, num_val_im=0,
 
         if filter_non_overlap:
             assert mode == 'train'
-            inters = bbox_overlaps(torch.from_numpy(boxes_i).float(), torch.from_numpy(boxes_i).float()).numpy()
+            inters = bbox_overlaps(torch.from_numpy(boxes_i).float(),
+                                   torch.from_numpy(boxes_i).float()).numpy()
             rel_overs = inters[rels[:, 0], rels[:, 1]]
             inc = np.where(rel_overs > 0.0)[0]
 

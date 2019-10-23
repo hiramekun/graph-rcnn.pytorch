@@ -4,6 +4,7 @@ from .sg import sg_evaluation
 
 from ..vg_hdf5 import vg_hdf5
 
+
 def evaluate(dataset, predictions, output_folder, **kwargs):
     """evaluate dataset using different methods based on dataset type.
     Args:
@@ -26,6 +27,7 @@ def evaluate(dataset, predictions, output_folder, **kwargs):
         dataset_name = dataset.__class__.__name__
         raise NotImplementedError("Unsupported dataset type {}.".format(dataset_name))
 
+
 def evaluate_sg(dataset, predictions, predictions_pred, output_folder, **kwargs):
     """evaluate scene graph generation performance
     Args:
@@ -40,7 +42,8 @@ def evaluate_sg(dataset, predictions, predictions_pred, output_folder, **kwargs)
         evaluation result
     """
     args = dict(
-        dataset=dataset, predictions=predictions, predictions_pred=predictions_pred, output_folder=output_folder, **kwargs
+        dataset=dataset, predictions=predictions, predictions_pred=predictions_pred,
+        output_folder=output_folder, **kwargs
     )
     if isinstance(dataset, vg_hdf5):
         return sg_evaluation(**args)

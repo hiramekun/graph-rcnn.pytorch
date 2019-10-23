@@ -17,7 +17,7 @@ def boxlist_nms(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
         max_proposals (int): if > 0, then only the top max_proposals are kept
             after non-maximum suppression
         score_field (str)
-    """    
+    """
     if nms_thresh <= 0:
         return boxlist
     mode = boxlist.mode
@@ -43,7 +43,7 @@ def remove_small_boxes(boxlist, min_size):
     xywh_boxes = boxlist.convert("xywh").bbox
     _, _, ws, hs = xywh_boxes.unbind(dim=1)
     keep = (
-        (ws >= min_size) & (hs >= min_size)
+            (ws >= min_size) & (hs >= min_size)
     ).nonzero().squeeze(1)
     return boxlist[keep]
 
@@ -66,7 +66,7 @@ def boxlist_iou(boxlist1, boxlist2):
     """
     if boxlist1.size != boxlist2.size:
         raise RuntimeError(
-                "boxlists should have same image size, got {}, {}".format(boxlist1, boxlist2))
+            "boxlists should have same image size, got {}, {}".format(boxlist1, boxlist2))
     boxlist1 = boxlist1.convert("xyxy")
     boxlist2 = boxlist2.convert("xyxy")
     N = len(boxlist1)

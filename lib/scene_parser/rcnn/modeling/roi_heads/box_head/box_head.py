@@ -37,7 +37,7 @@ class ROIBoxHead(torch.nn.Module):
             losses (dict[Tensor]): During training, returns the losses for the
                 head. During testing, returns an empty dict.
         """
-        if self.training: # or not self.cfg.inference:
+        if self.training:  # or not self.cfg.inference:
             # Faster R-CNN subsamples during training the proposals with a fixed
             # positive / negative ratio
             with torch.no_grad():
@@ -60,7 +60,7 @@ class ROIBoxHead(torch.nn.Module):
                 result = self.loss_evaluator.prepare_labels(result, targets)
             return x, result, {}
             # else:
-                # return x, proposals, {}
+            # return x, proposals, {}
 
         loss_classifier, loss_box_reg = self.loss_evaluator(
             [class_logits], [box_regression]

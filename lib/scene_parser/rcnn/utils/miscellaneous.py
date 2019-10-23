@@ -23,8 +23,9 @@ def save_labels(dataset_list, output_dir):
             if hasattr(dataset, 'categories'):
                 ids_to_labels.update(dataset.categories)
             else:
-                logger.warning("Dataset [{}] has no categories attribute, labels.json file won't be created".format(
-                    dataset.__class__.__name__))
+                logger.warning(
+                    "Dataset [{}] has no categories attribute, labels.json file won't be created".format(
+                        dataset.__class__.__name__))
 
         if ids_to_labels:
             labels_file = os.path.join(output_dir, 'labels.json')

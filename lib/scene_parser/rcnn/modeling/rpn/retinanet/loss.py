@@ -16,6 +16,7 @@ from lib.scene_parser.rcnn.structures.boxlist_ops import boxlist_iou
 from lib.scene_parser.rcnn.structures.boxlist_ops import cat_boxlist
 from lib.scene_parser.rcnn.modeling.rpn.loss import RPNLossComputation
 
+
 class RetinaNetLossComputation(RPNLossComputation):
     """
     This class computes the RetinaNet loss.
@@ -57,7 +58,7 @@ class RetinaNetLossComputation(RPNLossComputation):
 
         N = len(labels)
         box_cls, box_regression = \
-                concat_box_prediction_layers(box_cls, box_regression)
+            concat_box_prediction_layers(box_cls, box_regression)
 
         labels = torch.cat(labels, dim=0)
         regression_targets = torch.cat(regression_targets, dim=0)
@@ -101,7 +102,7 @@ def make_retinanet_loss_evaluator(cfg, box_coder):
         box_coder,
         generate_retinanet_labels,
         sigmoid_focal_loss,
-        bbox_reg_beta = cfg.MODEL.RETINANET.BBOX_REG_BETA,
-        regress_norm = cfg.MODEL.RETINANET.BBOX_REG_WEIGHT,
+        bbox_reg_beta=cfg.MODEL.RETINANET.BBOX_REG_BETA,
+        regress_norm=cfg.MODEL.RETINANET.BBOX_REG_WEIGHT,
     )
     return loss_evaluator

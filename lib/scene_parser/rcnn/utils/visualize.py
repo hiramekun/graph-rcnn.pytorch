@@ -1,6 +1,7 @@
 import cv2
 import torch
 
+
 def select_top_predictions(predictions, confidence_threshold=0.2):
     """
     Select only predictions which have a `score` > self.confidence_threshold,
@@ -20,13 +21,16 @@ def select_top_predictions(predictions, confidence_threshold=0.2):
     _, idx = scores.sort(0, descending=True)
     return predictions[idx]
 
-def compute_colors_for_labels(labels, palette = torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])):
+
+def compute_colors_for_labels(labels,
+                              palette=torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])):
     """
     Simple function that adds fixed colors depending on the class
     """
     colors = labels[:, None] * palette
     colors = (colors % 255).numpy().astype("uint8")
     return colors
+
 
 def overlay_boxes(image, predictions):
     """
@@ -49,6 +53,7 @@ def overlay_boxes(image, predictions):
         )
 
     return image
+
 
 def overlay_class_names(image, predictions, categories):
     """
@@ -73,6 +78,7 @@ def overlay_class_names(image, predictions, categories):
         )
 
     return image
+
 
 def overlay_question_answers(image, qas, max_num=10):
     """

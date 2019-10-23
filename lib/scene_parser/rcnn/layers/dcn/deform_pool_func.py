@@ -4,22 +4,23 @@ from torch.autograd.function import once_differentiable
 
 from lib.scene_parser.rcnn import _C
 
+
 class DeformRoIPoolingFunction(Function):
 
     @staticmethod
     def forward(
-        ctx,
-        data,
-        rois,
-        offset,
-        spatial_scale,
-        out_size,
-        out_channels,
-        no_trans,
-        group_size=1,
-        part_size=None,
-        sample_per_part=4,
-        trans_std=.0
+            ctx,
+            data,
+            rois,
+            offset,
+            spatial_scale,
+            out_size,
+            out_channels,
+            no_trans,
+            group_size=1,
+            part_size=None,
+            sample_per_part=4,
+            trans_std=.0
     ):
         ctx.spatial_scale = spatial_scale
         ctx.out_size = out_size

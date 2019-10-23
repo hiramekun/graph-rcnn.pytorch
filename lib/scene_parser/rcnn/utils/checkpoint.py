@@ -12,14 +12,14 @@ from .model_zoo import cache_url
 
 class Checkpointer(object):
     def __init__(
-        self,
-        model,
-        optimizer=None,
-        scheduler=None,
-        save_dir="",
-        save_to_disk=None,
-        logger=None,
-        inference=False
+            self,
+            model,
+            optimizer=None,
+            scheduler=None,
+            save_dir="",
+            save_to_disk=None,
+            logger=None,
+            inference=False
     ):
         self.model = model
         self.optimizer = optimizer
@@ -70,7 +70,8 @@ class Checkpointer(object):
         if "scheduler" in checkpoint and self.scheduler and "sg" in f and not self.inference:
             self.logger.info("Loading scheduler from {}".format(f))
             self.scheduler.load_state_dict(checkpoint.pop("scheduler"))
-        checkpoint['iteration'] = resume  # if we load detector, the we should not use its start iteration
+        checkpoint[
+            'iteration'] = resume  # if we load detector, the we should not use its start iteration
 
         return checkpoint
 
@@ -112,14 +113,14 @@ class Checkpointer(object):
 
 class DetectronCheckpointer(Checkpointer):
     def __init__(
-        self,
-        cfg,
-        model,
-        optimizer=None,
-        scheduler=None,
-        save_dir="",
-        save_to_disk=None,
-        logger=None,
+            self,
+            cfg,
+            model,
+            optimizer=None,
+            scheduler=None,
+            save_dir="",
+            save_to_disk=None,
+            logger=None,
     ):
         super(DetectronCheckpointer, self).__init__(
             model, optimizer, scheduler, save_dir, save_to_disk, logger
@@ -132,7 +133,7 @@ class DetectronCheckpointer(Checkpointer):
             paths_catalog = import_file(
                 "lib.config.paths_catalog", self.cfg.PATHS_CATALOG, True
             )
-            catalog_f = paths_catalog.ModelCatalog.get(f[len("catalog://") :])
+            catalog_f = paths_catalog.ModelCatalog.get(f[len("catalog://"):])
             self.logger.info("{} points to {}".format(f, catalog_f))
             f = catalog_f
         # download url files
@@ -150,16 +151,17 @@ class DetectronCheckpointer(Checkpointer):
             loaded = dict(model=loaded)
         return loaded
 
+
 class SceneParserCheckpointer(Checkpointer):
     def __init__(
-        self,
-        cfg,
-        model,
-        optimizer=None,
-        scheduler=None,
-        save_dir="",
-        save_to_disk=None,
-        logger=None,
+            self,
+            cfg,
+            model,
+            optimizer=None,
+            scheduler=None,
+            save_dir="",
+            save_to_disk=None,
+            logger=None,
     ):
         super(SceneParserCheckpointer, self).__init__(
             model, optimizer, scheduler, save_dir, save_to_disk, logger, cfg.inference
@@ -172,7 +174,7 @@ class SceneParserCheckpointer(Checkpointer):
             paths_catalog = import_file(
                 "lib.config.paths_catalog", self.cfg.PATHS_CATALOG, True
             )
-            catalog_f = paths_catalog.ModelCatalog.get(f[len("catalog://") :])
+            catalog_f = paths_catalog.ModelCatalog.get(f[len("catalog://"):])
             self.logger.info("{} points to {}".format(f, catalog_f))
             f = catalog_f
         # download url files
