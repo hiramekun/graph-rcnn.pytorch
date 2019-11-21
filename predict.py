@@ -15,6 +15,7 @@ from lib.config import cfg
 from lib.data.transforms import build_transforms
 from lib.model import SceneGraphGeneration
 from lib.model import build_model
+from visualize import evaluate
 
 
 def parse_args():
@@ -107,6 +108,16 @@ def predict(img, model: SceneGraphGeneration):
     print(output.get_field("labels"))
     print(output_pred.get_field("idx_pairs"))
     print(output_pred.get_field("scores"))
+    triplets, _ = evaluate(output.bbox, output.get_field("scores"),
+                           output.get_field("labels"),
+                           output_pred.get_field("idx_pairs"),
+                           output_pred.get_field("scores"),
+                           20, {}, "")
+    for (s, r, o) in triplets:
+        s_str = itola[str(s)]
+        o_str = itola[str(o)]
+        r_str = itopred[str(r)]
+        print(f'{s_str} {r_str} {o_str}')
 
 
 if __name__ == '__main__':
