@@ -174,6 +174,10 @@ class vg_hdf5(Dataset):
         target = BoxList(obj_boxes, (width, height), mode="xyxy")
         target.add_field("labels", torch.from_numpy(obj_labels))
         target.add_field("pred_labels", torch.from_numpy(obj_relations))
+
+        # returns index of the object
+        # note: NOT the id of the class!!
+        # (subjective_id, objective_id, relation_id)
         target.add_field("relation_labels", torch.from_numpy(obj_relation_triplets))
         target.add_field("difficult", torch.from_numpy(obj_labels).clone().fill_(0))
         return target
