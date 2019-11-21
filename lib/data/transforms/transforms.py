@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import random
 
-import torch
 import torchvision
 from torchvision.transforms import functional as F
 
@@ -12,7 +11,8 @@ class Compose(object):
 
     def __call__(self, image, target):
         for t in self.transforms:
-            image, target = t(image, target)
+            tmp = t(image, target)
+            image, target = tmp
         return image, target
 
     def __repr__(self):
@@ -58,7 +58,7 @@ class Resize(object):
         size = self.get_size(image.size)
         image = F.resize(image, size)
         if target is None:
-            return image
+            return image, None
         target = target.resize(image.size)
         return image, target
 
@@ -119,5 +119,5 @@ class Normalize(object):
             image = image[[2, 1, 0]] * 255
         image = F.normalize(image, mean=self.mean, std=self.std)
         if target is None:
-            return image
+            return image, None
         return image, target
