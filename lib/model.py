@@ -1,19 +1,21 @@
-import os
 import datetime
 import logging
+import os
 import time
+
+import cv2
 import numpy as np
 import torch
-import cv2
+
 from .data.build import build_data_loader
+from .data.evaluation import evaluate, evaluate_sg
 from .scene_parser.parser import build_scene_parser
 from .scene_parser.parser import build_scene_parser_optimizer
+from .scene_parser.rcnn.utils.comm import synchronize, all_gather, is_main_process, get_world_size
 from .scene_parser.rcnn.utils.metric_logger import MetricLogger
 from .scene_parser.rcnn.utils.timer import Timer, get_time_str
-from .scene_parser.rcnn.utils.comm import synchronize, all_gather, is_main_process, get_world_size
 from .scene_parser.rcnn.utils.visualize import select_top_predictions, overlay_boxes, \
     overlay_class_names
-from .data.evaluation import evaluate, evaluate_sg
 from .utils.box import bbox_overlaps
 
 

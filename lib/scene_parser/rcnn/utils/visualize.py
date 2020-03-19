@@ -66,16 +66,19 @@ def overlay_class_names(image, predictions, categories):
     """
     scores = predictions.get_field("scores").tolist()
     labels = predictions.get_field("labels").tolist()
-    labels = [categories[i] for i in labels]
+    # todo: 自作データセットのときだけ 1-index から 0-index になおす作業が必要になるのはなぜ？
+    labels = [categories[i - 1] for i in labels]
     boxes = predictions.bbox
 
     template = "{}: {:.2f}"
+    # TODO: for instance
     for box, score, label in zip(boxes, scores, labels):
-        x, y = box[:2]
-        s = template.format(label, score)
-        cv2.putText(
-            image, s, (x, y), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1
-        )
+        if label == "helmet" or label == "glove" or label == "hat":
+            x, y = box[:2]
+            s = template.format(label, score)
+            cv2.putText(
+                image, s, (x, y), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1
+            )
 
     return image
 

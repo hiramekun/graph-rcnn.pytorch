@@ -41,8 +41,7 @@ class vg_hdf5(Dataset):
         # add background class
         self.info['label_to_idx']['__background__'] = 0
         self.class_to_ind = self.info['label_to_idx']
-        self.ind_to_classes = sorted(self.class_to_ind, key=lambda k:
-        self.class_to_ind[k])
+        self.ind_to_classes = sorted(self.class_to_ind, key=lambda k: self.class_to_ind[k])
         # cfg.ind_to_class = self.ind_to_classes
 
         self.predicate_to_ind = self.info['predicate_to_idx']

@@ -9,6 +9,7 @@ from lib.data.build import build_data_loader
 from lib.config import cfg
 
 from lib.data.evaluation.sg.evaluator import BasicSceneGraphEvaluator
+from lib.utils.box import bbox_overlaps
 
 PREFIX_RESULTS = "results/sg_imp_freq"
 
@@ -83,7 +84,8 @@ def evaluate(obj_rois, obj_scores, obj_labels,
     #     # result_dict[mode + '_triplets'][k].append(triplets_valid)
 
     # for visualization
-    return pred_triplets[sorted_inds, :], pred_triplet_boxes[sorted_inds, :]
+    return pred_triplets[sorted_inds, :], pred_triplet_boxes[sorted_inds, :], relation_scores[
+                                                                              sorted_inds, :]
 
 
 def _triplet(predicates, relations, classes, boxes,

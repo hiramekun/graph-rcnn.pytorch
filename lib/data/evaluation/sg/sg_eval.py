@@ -11,7 +11,6 @@ def do_sg_evaluation(dataset, predictions, predictions_pred, output_folder, logg
     evaluator = BasicSceneGraphEvaluator.all_modes(multiple_preds=False)
 
     top_Ns = [20, 50, 100]
-    # evaluation method
     modes = ["sgdet"]
     result_dict = {}
 
@@ -60,7 +59,9 @@ def do_sg_evaluation(dataset, predictions, predictions_pred, output_folder, logg
                 pred_entry,
             )
 
-            evaluate(prediction.bbox, prediction.get_field("scores"),
+            evaluate(gt_boxlist.get_field("labels"), gt_boxlist.bbox,
+                     gt_boxlist.get_field("pred_labels"),
+                     prediction.bbox, prediction.get_field("scores"),
                      prediction.get_field("labels"),
                      prediction_pred.get_field("idx_pairs"), prediction_pred.get_field("scores"),
                      top_Ns, result_dict, mode)
@@ -75,18 +76,49 @@ def do_sg_evaluation(dataset, predictions, predictions_pred, output_folder, logg
             "{}-recall@100: {}".format(mode, np.mean(np.array(result_dict[mode + '_recall'][100]))))
 
 
-def evaluate(obj_rois, obj_scores, obj_labels,
+def evaluate(gt_classes, gt_boxes, gt_rels,
+             obj_rois, obj_scores, obj_labels,
              rel_inds, rel_scores,
              top_Ns, result_dict,
              mode, iou_thresh=0.5):
+    gt_classes = gt_classes.cpu()
+    gt_boxes = gt_boxes.cpu()
+    gt_rels = gt_rels.cpu()
+
     obj_rois = obj_rois.cpu()
     obj_scores = obj_scores.cpu()
     obj_labels = obj_labels.cpu()
     rel_inds = rel_inds.cpu()
     rel_scores = rel_scores.cpu()
 
+    if gt_rels.ne(0).sum() == 0:
+        return (None, None)
+
+    rel_sum = ((gt_rels.sum(1) > 0).int() + (gt_rels.sum(0) > 0).int())
+    ix_w_rel = rel_sum.nonzero().numpy().squeeze()
+
     # label = (((gt_rel_label.sum(1) == 0).int() + (gt_rel_label.sum(0) == 0).int()) == 2)
     # change_ix = label.nonzero()
+
+    gt_boxes = gt_boxes.numpy()
+    num_gt_boxes = gt_boxes.shape[0]
+    gt_relations = gt_rels.nonzero().numpy()
+    gt_classes = gt_classes.view(-1, 1).numpy()
+
+    gt_rels_view = gt_rels.contiguous().view(-1)
+    gt_pred_labels = gt_rels_view[gt_rels_view.nonzero().squeeze()].contiguous().view(-1, 1).numpy()
+
+    num_gt_relations = gt_relations.shape[0]
+    if num_gt_relations == 0:
+        return (None, None)
+    gt_class_scores = np.ones(num_gt_boxes)
+    gt_predicate_scores = np.ones(num_gt_relations)
+    gt_triplets, gt_triplet_boxes, _ = _triplet(gt_pred_labels,
+                                                gt_relations,
+                                                gt_classes,
+                                                gt_boxes,
+                                                gt_predicate_scores,
+                                                gt_class_scores)
 
     # pred
     box_preds = obj_rois.numpy()
@@ -138,29 +170,29 @@ def evaluate(obj_rois, obj_scores, obj_labels,
         _triplet(predicates, relations, classes, boxes,
                  predicate_scores, class_scores, is_pred=False)
     sorted_inds = np.argsort(relation_scores)[::-1]
-    # sorted_inds_obj = np.argsort(class_scores)[::-1]
-    # # compue recall
-    #
-    # for k in result_dict[mode + '_recall']:
-    #     this_k = min(k, num_relations)
-    #     keep_inds = sorted_inds[:this_k]
-    #     keep_inds_obj = sorted_inds_obj[:this_k]
-    #
-    #     # triplets_valid = _relation_recall_triplet(gt_triplets,
-    #     #                           pred_triplets[keep_inds,:],
-    #     #                           gt_triplet_boxes,
-    #     #                           pred_triplet_boxes[keep_inds,:],
-    #     #                           iou_thresh)
-    #
-    #     recall = _relation_recall(gt_triplets,
-    #                               pred_triplets[keep_inds, :],
-    #                               gt_triplet_boxes,
-    #                               pred_triplet_boxes[keep_inds, :],
-    #                               iou_thresh)
-    #     num_gt = gt_triplets.shape[0]
-    #
-    #     result_dict[mode + '_recall'][k].append(recall / num_gt)
-    #     # result_dict[mode + '_triplets'][k].append(triplets_valid)
+    sorted_inds_obj = np.argsort(class_scores)[::-1]
+    # compue recall
+
+    for k in result_dict[mode + '_recall']:
+        this_k = min(k, num_relations)
+        keep_inds = sorted_inds[:this_k]
+        keep_inds_obj = sorted_inds_obj[:this_k]
+
+        # triplets_valid = _relation_recall_triplet(gt_triplets,
+        #                           pred_triplets[keep_inds,:],
+        #                           gt_triplet_boxes,
+        #                           pred_triplet_boxes[keep_inds,:],
+        #                           iou_thresh)
+
+        recall = _relation_recall(gt_triplets,
+                                  pred_triplets[keep_inds, :],
+                                  gt_triplet_boxes,
+                                  pred_triplet_boxes[keep_inds, :],
+                                  iou_thresh)
+        num_gt = gt_triplets.shape[0]
+
+        result_dict[mode + '_recall'][k].append(recall / num_gt)
+        # result_dict[mode + '_triplets'][k].append(triplets_valid)
 
     # for visualization
     return pred_triplets[sorted_inds, :], pred_triplet_boxes[sorted_inds, :]

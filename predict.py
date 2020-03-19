@@ -7,15 +7,24 @@ import numpy as np
 import torch
 from PIL import Image
 from structures.bounding_box_pair import BoxPairList
+from torch.utils.data import DataLoader
 from utils.comm import synchronize, get_rank
 from utils.logger import setup_logger
 from utils.miscellaneous import save_config
+from utils.visualize import select_top_predictions, overlay_boxes, overlay_class_names
 
 from lib.config import cfg
+from lib.data.collate_batch import BatchCollator
 from lib.data.transforms import build_transforms
 from lib.model import SceneGraphGeneration
 from lib.model import build_model
-from visualize import evaluate
+from my_evaluation import evaluate
+from voc2019 import VOCDetection
+
+label_human = ["man"]
+label_target = ["helmet", "glove", "hat"]
+num_relation = 50
+th = -1
 
 
 def parse_args():
@@ -81,43 +90,153 @@ def parse_args():
     parser.add_argument("--visualize", action='store_true')
     parser.add_argument("--algorithm", type=str, default='sg_baseline')
     parser.add_argument("--image", type=str)
+    parser.add_argument("--dir", type=str)
     args = parser.parse_args()
     return args
 
 
-def predict(img, model: SceneGraphGeneration):
-    with torch.no_grad():
-        im = Image.fromarray(img)
-        transforms = build_transforms(cfg, is_train=False)
-        im, _ = transforms(im, None)
-        print(im.shape)  # size is 1024, c h w
-        if torch.cuda.device_count() > 0:
-            im = im.cuda()
+def imshow(img):
+    cv2.imshow("image", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-        output = model.scene_parser([im])
+
+def visualize_detection(dataset, img_id, imgs, prediction):
+    visualize_folder = "my_visualize"
+    if not os.path.exists(visualize_folder):
+        os.mkdir(visualize_folder)
+    top_prediction = select_top_predictions(prediction)
+    # c, w, h -> w, h, c
+    img = imgs.tensors[0].permute(1, 2, 0).contiguous().cpu().numpy() + np.array(
+        cfg.INPUT.PIXEL_MEAN).reshape(1, 1, 3)
+    result = img.copy()
+    result = overlay_boxes(result, top_prediction)
+    result = overlay_class_names(result, top_prediction, dataset.ind_to_classes)
+    cv2.imwrite(os.path.join(visualize_folder, "detection_{}.jpg".format(img_id)),
+                result)
+
+
+def visualize_detection_from_raw(img_id, img, prediction):
+    visualize_folder = "./my_visualize_holding_helmet"
+    if not os.path.exists(visualize_folder):
+        os.mkdir(visualize_folder)
+    # top_prediction = select_top_predictions(prediction)
+    top_prediction = prediction
+    result = img.permute(1, 2, 0).contiguous().cpu().numpy().copy() + np.array(
+        cfg.INPUT.PIXEL_MEAN).reshape(1, 1, 3)
+    result = overlay_boxes(result, top_prediction)
+    result = overlay_class_names(result, top_prediction,
+                                 VOCDetection("./data", transforms=None).ind_to_classes)
+    cv2.imwrite(os.path.join(visualize_folder, "detection_{}.jpg".format(img_id)),
+                result)
+
+
+def predict_imgs(dir_path, model):
+    imgs = os.listdir(dir_path)
+    if th > 0:
+        tmp = th
+    else:
+        tmp = num_relation
+    with open(f'result-holding-helmet-{tmp}.txt', 'w') as f:
+        for img in imgs:
+            predict_img(os.path.join(dir_path, img), model, f)
+
+
+def predict_img(img_path, model, res_file=None):
+    import time
+    img = Image.open(img_path)
+    img = np.asarray(img)
+    print(img.shape)
+    start = time.time()
+    transforms = build_transforms(cfg, is_train=False)
+    im = Image.fromarray(img)
+    im, _ = transforms(im, None)
+
+    with torch.no_grad():
+        im = im.to(torch.device("cuda"))
+        img_name = os.path.splitext(os.path.basename(img_path))[0]
+        print("inference on " + img_name + "...")
+
+        output = model.scene_parser(im)
         output, output_pred = output
+
         cpu_device = torch.device("cpu")
 
         output_pred: [BoxPairList] = [o.to(cpu_device) for o in output_pred]
         output = [o.to(cpu_device) for o in output]
 
-    output = output[0]
-    output_pred = output_pred[0]
-    print(f'output: {output}')
-    print(f'output_pred: {output_pred}')
-    print(output.get_field("labels"))
-    print(output_pred.get_field("idx_pairs"))
-    print(output_pred.get_field("scores"))
-    triplets, _ = evaluate(output.bbox, output.get_field("scores"),
-                           output.get_field("labels"),
-                           output_pred.get_field("idx_pairs"),
-                           output_pred.get_field("scores"),
-                           20, {}, "")
-    for (s, r, o) in triplets:
-        s_str = itola[str(s)]
-        o_str = itola[str(o)]
-        r_str = itopred[str(r)]
-        print(f'{s_str} {r_str} {o_str}')
+        output = output[0]
+        output_pred = output_pred[0]
+        triplets, pred_box = evaluate(output.bbox, output.get_field("scores"),
+                                      output.get_field("labels"),
+                                      output_pred.get_field("idx_pairs"),
+                                      output_pred.get_field("scores"), num_relation, th)
+        visualize_detection_from_raw(img_name, im, output)
+        write_str = img_name + ", "
+        for (s, r, o) in triplets:
+            s_str = itola[str(s)]
+            o_str = itola[str(o)]
+            r_str = itopred[str(r)]
+            if s_str in label_human and o_str in label_target:
+                sent = s_str + " " + r_str + " " + o_str
+                write_str += sent + ", "
+
+        print(write_str)
+        if res_file:
+            res_file.write(write_str + "\n")
+
+    end = time.time()
+    print("elapsed_time: {0} sec".format(end - start))
+
+
+def predict_with_loader(model):
+    import time
+    start = time.time()
+    transforms = build_transforms(cfg, is_train=False)
+    dataset = VOCDetection("./data", transforms=transforms)
+
+    collator = BatchCollator(cfg.DATASET.SIZE_DIVISIBILITY)
+    dataloader = DataLoader(dataset, collate_fn=collator)
+    if th > 0:
+        tmp = th
+    else:
+        tmp = num_relation
+
+    with open(f'result-{tmp}-hat.txt', "w") as f:
+        for i_batch, data in enumerate(dataloader):
+            with torch.no_grad():
+                imgs, targets, img_names = data
+                imgs = imgs.to(torch.device("cuda"))
+                _img_name = img_names[0]
+                img_name = os.path.splitext(os.path.basename(_img_name))[0]
+                print("inference on " + img_name + "...")
+
+                output = model.scene_parser(imgs)
+                output, output_pred = output
+
+                cpu_device = torch.device("cpu")
+
+                output_pred: [BoxPairList] = [o.to(cpu_device) for o in output_pred]
+                output = [o.to(cpu_device) for o in output]
+
+                output = output[0]
+                output_pred = output_pred[0]
+                triplets, pred_box = evaluate(output.bbox, output.get_field("scores"),
+                                              output.get_field("labels"),
+                                              output_pred.get_field("idx_pairs"),
+                                              output_pred.get_field("scores"), num_relation, th)
+                visualize_detection(dataloader.dataset, img_name, imgs, output)
+                write_str = img_name + ", "
+                for (s, r, o) in triplets:
+                    s_str = itola[str(s)]
+                    o_str = itola[str(o)]
+                    r_str = itopred[str(r)]
+                    if s_str in label_human and o_str in label_target:
+                        sent = s_str + " " + r_str + " " + o_str
+                        write_str += sent + ", "
+                f.write(write_str + "\n")
+    end = time.time()
+    print("elapsed_time: {0} sec".format(end - start))
 
 
 if __name__ == '__main__':
@@ -150,16 +269,14 @@ if __name__ == '__main__':
     arguments = {"iteration": 0}
     model = build_model(cfg, arguments, args.local_rank, args.distributed)
     model.scene_parser.eval()
-    # use Image, not cv2!!
-    img = Image.open(args.image)
-    img = np.asarray(img)
-    # bgr
-    print(img.shape)
 
     info = json.load(open(os.path.join(cfg.DATASET.PATH, "VG-SGG-dicts.json"), 'r'))
     itola = info['idx_to_label']
-    print(itola)
     itopred = info['idx_to_predicate']
-    print(itopred)
-    print(img.shape)
-    predict(img, model)
+
+    if args.image:
+        predict_img(args.image, model)
+    elif args.dir:
+        predict_imgs(args.dir, model)
+    else:
+        predict_with_loader(model)

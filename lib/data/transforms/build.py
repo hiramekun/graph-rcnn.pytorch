@@ -40,7 +40,7 @@ def build_transforms(cfg, is_train=True):
             # T.RandomHorizontalFlip(flip_horizontal_prob), # NOTE: mute this since spatial repations is snesible to this
             # T.RandomVerticalFlip(flip_vertical_prob), # NOTE: mute this since spatial repations is snesible to this
             T.ToTensor(),
-            normalize_transform,
+            normalize_transform
         ]
     )
     return transform

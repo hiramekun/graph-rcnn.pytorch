@@ -97,7 +97,8 @@ def test(cfg, args, model=None):
         arguments = {}
         arguments["iteration"] = 0
         model = build_model(cfg, arguments, args.local_rank, args.distributed)
-    model.test(visualize=args.visualize)
+    model.test(visualize=args.visualize, split="our")
+    # model.test(visualize=args.visualize)
 
 
 def main():
